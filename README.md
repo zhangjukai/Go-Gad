@@ -9,14 +9,13 @@
 
 ### 部分知识点整理
 
-- [Java equals、hashCode整理](https://github.com/zhangjukai/Go-Gad/blob/master/notes/se/Java equals、hashCode整理.md)
-- [Java  Comparable 和 Comparator](https://github.com/zhangjukai/Go-Gad/blob/master/notes/se/Java  Comparable 和 Comparator.md)
+- [Java equals、hashCode整理](https://github.com/zhangjukai/Go-Gad/blob/master/notes/se/equals与hashCode整理.md)
+- [Java  Comparable 和 Comparator](https://github.com/zhangjukai/Go-Gad/blob/master/notes/se/Comparable和Comparator.md)
 
 ### 多线程/高并发
 
-- [多线程技术](https://github.com/zhangjukai/Go-Gad/blob/master/notes/thread/Thread.md)
+- [多线程基础](https://github.com/zhangjukai/Go-Gad/blob/master/notes/thread/Thread.md)
 
 ## MyBatis
 
 - [MyBatis-Plus自动填充扩展](https://github.com/zhangjukai/Go-Gad/blob/master/notes/MyBatis/MyBatis-Plus自动填充扩展.md)
-
