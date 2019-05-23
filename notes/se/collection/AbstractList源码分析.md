@@ -4,7 +4,7 @@
 
 AbstractList继承关系如下：
 
-![AbstractList](D:\hycloud\notes\collection\AbstractList.png)
+![AbstractList](notes/se/collection/AbstractList.png)
 
 ## add(E e)
 

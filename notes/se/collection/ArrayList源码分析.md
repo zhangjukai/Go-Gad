@@ -2,7 +2,7 @@
 
 ## 简介
 
-![ArrayList](D:\hycloud\notes\collection\ArrayList.png)
+![ArrayList](notes/se/collection/ArrayList.png)
 
 由上图可知，ArrayList继承了AbstractList，实现了List、RandomAccess、Cloneable、Serializable接口，其中RandomAccess接口是一个空的接口，
 
