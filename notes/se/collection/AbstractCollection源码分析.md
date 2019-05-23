@@ -31,7 +31,7 @@ public boolean contains(Object o) {
 }
 ```
 
-**toArray**将集合转化为数组
+**toArray** 将集合转化为数组
 
 ```java
 public Object[] toArray() {
