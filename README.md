@@ -6,6 +6,14 @@
 部分记录是自己在公司利用空余时间完成的，在该项目中并没有相关具体的源代码
 
 ## JavaSE
+
+### 部分知识点整理
+
+- [Java equals、hashCode整理](notes/se/equals与hashCode整理.md)
+- [Java  Comparable 和 Comparator](notes/se/Comparable和Comparator.md)
+
+### 集合源码分析
+
 - [集合框架整体介绍](notes/se/collection/集合框架整体介绍.md)
 - [AbstractCollection源码分析](notes/se/collection/AbstractCollection源码分析.md)
 - [AbstractList源码分析](notes/se/collection/AbstractList源码分析.md)
@@ -15,12 +23,6 @@
 - [Deque源码分析](notes/se/collection/Deque源码分析.md)
 - [ArrayDeque源码分析](notes/se/collection/ArrayDeque源码分析.md)
 
-### 部分知识点整理
-
-- [Java equals、hashCode整理](notes/se/equals与hashCode整理.md)
-- [Java  Comparable 和 Comparator](notes/se/Comparable和Comparator.md)
-
-### 集合源码分析
 
 ### 多线程/高并发
 
