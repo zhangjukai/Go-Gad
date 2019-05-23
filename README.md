@@ -9,7 +9,7 @@
 
 ### 部分知识点整理
 
-- [Java equals、hashCode整理](./blob/master/notes/se/equals与hashCode整理.md)
+- [Java equals、hashCode整理](notes/se/equals与hashCode整理.md)
 - [Java  Comparable 和 Comparator](https://github.com/zhangjukai/Go-Gad/blob/master/notes/se/Comparable和Comparator.md)
 
 ### 集合源码分析
