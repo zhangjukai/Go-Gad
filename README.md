@@ -6,18 +6,26 @@
 部分记录是自己在公司利用空余时间完成的，在该项目中并没有相关具体的源代码
 
 ## JavaSE
+- [集合框架整体介绍](notes/se/conllection/集合框架整体介绍.md)
+- [AbstractCollection源码分析](notes/se/conllection/AbstractCollection源码分析.md)
+- [AbstractList源码分析](notes/se/conllection/AbstractList源码分析.md)
+- [ArrayList源码分析](notes/se/conllection/ArrayList源码分析.md)
+- [Stack源码分析](notes/se/conllection/Stack源码分析.md)
+- [Queue源码分析](notes/se/conllection/Queue源码分析.md)
+- [Deque源码分析](notes/se/conllection/Deque源码分析.md)
+- [ArrayDeque源码分析](notes/se/conllection/ArrayDeque源码分析.md)
 
 ### 部分知识点整理
 
 - [Java equals、hashCode整理](notes/se/equals与hashCode整理.md)
-- [Java  Comparable 和 Comparator](https://github.com/zhangjukai/Go-Gad/blob/master/notes/se/Comparable和Comparator.md)
+- [Java  Comparable 和 Comparator](notes/se/Comparable和Comparator.md)
 
 ### 集合源码分析
 
 ### 多线程/高并发
 
-- [多线程基础](https://github.com/zhangjukai/Go-Gad/blob/master/notes/thread/Thread.md)
+- [多线程基础](notes/thread/Thread.md)
 
 ## MyBatis
 
-- [MyBatis-Plus自动填充扩展](https://github.com/zhangjukai/Go-Gad/blob/master/notes/MyBatis/MyBatis-Plus自动填充扩展.md)
+- [MyBatis-Plus自动填充扩展](notes/MyBatis/MyBatis-Plus自动填充扩展.md)
