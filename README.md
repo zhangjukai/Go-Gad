@@ -12,6 +12,8 @@
 - [Java equals、hashCode整理](https://github.com/zhangjukai/Go-Gad/blob/master/notes/se/equals与hashCode整理.md)
 - [Java  Comparable 和 Comparator](https://github.com/zhangjukai/Go-Gad/blob/master/notes/se/Comparable和Comparator.md)
 
+### 集合源码分析
+
 ### 多线程/高并发
 
 - [多线程基础](https://github.com/zhangjukai/Go-Gad/blob/master/notes/thread/Thread.md)
