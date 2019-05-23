@@ -363,11 +363,11 @@ SubList在ArrayList中定义为一个私有的内部类，不过功能上是相�
 
 limit: 对一个Stream进行截断操作，获取其前N个元素，如果原Stream中包含的元素个数小于N，那就获取其所有的元素；
 
-![limit](D:\hycloud\notes\collection\limit.jpg)
+![limit](limit.jpg)
 
 skip: 返回一个丢弃原Stream的前N个元素后剩下元素组成的新Stream，如果原Stream中包含的元素个数小于N，那么返回空Stream；
 
-![skip](D:\hycloud\notes\collection\skip.jpg)
+![skip](skip.jpg)
 
 ## RandomAccessSubList
 
