@@ -12,7 +12,7 @@ AbstractCollection实现了Collection，实现了其中部分方法，是一个�
  }
 ```
 
-**contains**集合是否包含某个元素
+**contains** 集合是否包含某个元素
 
 ```java
 public boolean contains(Object o) {
@@ -50,7 +50,7 @@ public Object[] toArray() {
 }
 ```
 
-**toArray(T[] a)**将结合拷贝到指定的集合中
+**toArray(T[] a)** 将结合拷贝到指定的集合中
 
 ```java
 public <T> T[] toArray(T[] a) {
@@ -89,7 +89,7 @@ public <T> T[] toArray(T[] a) {
     return it.hasNext() ? finishToArray(r, it) : r;
 }
 ```
-**finishToArray**数组扩容
+**finishToArray** 数组扩容
 
 ```java
 // 数组允许的最大容量
