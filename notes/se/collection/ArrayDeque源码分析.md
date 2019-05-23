@@ -1,6 +1,6 @@
 ## 整体介绍
 
-![ArrayDeque](notes/se/collection/ArrayDeque.png)
+![ArrayDeque](ArrayDeque.png)
 
 由ArrayDeque的结构图可以知道，ArrayDeque继承自AbstractCollection，实现了Deque接口以及类名中的Array姓氏，基本可以判断ArrayDeque是一个基于数组实现的双向链表。
 

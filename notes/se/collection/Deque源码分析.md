@@ -1,6 +1,6 @@
 # Deque源码分析
 
-![Deque](notes/se/collection/Deque.png)
+![Deque](Deque.png)
 
 Deque接口继承自Queue接口，是一个双向队列，支持从两端进行添加和移除。因此Deque的实现可以被当作 FIFO队列使用，也可以当作LIFO的栈来使用。官方也是推荐使用 Deque 的实现来替代 Stack。
 

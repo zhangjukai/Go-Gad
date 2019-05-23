@@ -2,7 +2,7 @@
 
 ## Queue
 
-![Queue](notes/se/collection/Queue.png)
+![Queue](Queue.png)
 
 Queue-队列，是一种先进先出的数据结构，在Queue的实现中，主要通过链表或者数组来实现。
 

@@ -4,7 +4,7 @@ Stack-栈，继承自Vector，通过数组实现的，具有**先进后出**的�
 
 Stack的继承结构如下：
 
-![stack](notes/se/collection/Stack.png)
+![stack](Stack.png)
 
 只有一个父类Vector，也没有实现其他接口，源码也相对简单，如下：
 

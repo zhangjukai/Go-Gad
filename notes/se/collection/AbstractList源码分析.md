@@ -4,7 +4,7 @@
 
 AbstractList继承关系如下：
 
-![AbstractList](notes/se/collection/AbstractList.png)
+![AbstractList](AbstractList.png)
 
 ## add(E e)
 
