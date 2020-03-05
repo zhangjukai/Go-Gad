@@ -26,6 +26,8 @@ daemonThread.setDaemon(true);
 
 ## join方法
 
-thread.join()方法阻塞调用此方法的线程，知道线程thread执行完成，此线程在继续。
+thread.join()方法阻塞调用此方法的线程，直到线程thread执行完成，此线程在继续。
+
+A线程中执行b.jion(),A线程将暂停等待b线程执行完成
 
 示例见：**JavaBase-com.zjk.hy.thread.JoinTest**

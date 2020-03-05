@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script>
+    window.onload = function(){
+
+    }
+    function dofile() {
+        var file = document.getElementById("file");
+        console.log(file.files);
+        alert(file.path)
+    }
+</script>
+<body>
+    <input type="file" id="file" onchange="dofile()">
+</body>
+</html>
