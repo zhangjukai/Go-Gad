@@ -30,7 +30,7 @@ Deque 接口继承自 Queue接口，但 Deque 支持同时从两端添加或移�
 
 - ArrayDeque如果用作栈，比Stack的效率高，这是因为Stack是线程安全的，
 
-- ArrayDeque如果用作队列比LinkedList效率高，这是因为其实现方式：数组作为基底，两个指分指头尾，插入删除操作时移动指针；如果头尾指针重合，则需要扩容 
+- ArrayDeque如果用作队列比LinkedList效率高，这是因为其实现方式：数组作为基底，两个指分指头尾，插入删除操作时移动指针；如果头尾指针重合，则需要扩容
 
  ```java
   // 基于数组实现
@@ -40,6 +40,12 @@ Deque 接口继承自 Queue接口，但 Deque 支持同时从两端添加或移�
   // 尾指针
   transient int tail;
  ```
+
+元素添加流程，能整体上有个理解：
+
+![流程图](./ArrayDeque底层原理.png)
+
+
 
 ## 源码解析
 
