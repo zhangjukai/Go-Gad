@@ -37,6 +37,10 @@
 
 - [MyBatis-Plus自动填充扩展](notes/MyBatis/MyBatis-Plus自动填充扩展.md)
 
+## 设计模式
+
++ [单例模式](notes/Design/单例模式.md)
+
 ## 其他
 
 + [Logback推送日志到MQ](notes/other/Logback推送日志到MQ.md)

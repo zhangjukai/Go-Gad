@@ -1,8 +1,10 @@
 ## 整体介绍
 
+Deque 接口继承自 Queue接口，但 Deque 支持同时从两端添加或移除元素，因此又被成为双端队列。`ArrayDeque`是`Deque`的实现类 ，可以被当作 FIFO队列使用，效率高于`LinkedList` ；也可以当作LIFO队列（栈）来使用，效率高于`Stack` ，官方也是推荐使用 Deque 的实现来替代 Stack。ArrayDeque不支持值为 null 的元素。
+
 ![ArrayDeque](ArrayDeque.png)
 
-由ArrayDeque的结构图可以知道，ArrayDeque继承自AbstractCollection，实现了Deque接口以及类名中的Array姓氏，基本可以判断ArrayDeque是一个基于数组实现的双向链表。
+由ArrayDeque的结构图可以知道，ArrayDeque继承自AbstractCollection，实现了Deque接口以及类名中的Array姓氏，基本可以判断ArrayDeque是一个基于数组实现的双向链表。 
 
 ```java
 /**

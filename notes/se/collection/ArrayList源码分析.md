@@ -24,7 +24,7 @@ private static final int DEFAULT_CAPACITY = 10;
 private static final Object[] EMPTY_ELEMENTDATA = {};
 // 默认空数组
 private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
-// 正在存放元素的数组申明，下面说明此处为什么使用transient
+// 真正存放元素的数组，下面说明此处为什么使用transient
 transient Object[] elementData;
 // 当前元素数量
 private int size;
@@ -132,6 +132,8 @@ private void ensureExplicitCapacity(int minCapacity) {
         grow(minCapacity);
 }
 ```
+
+
 
 ```java
 // 数组所允许的最大容量
