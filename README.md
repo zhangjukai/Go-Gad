@@ -46,7 +46,16 @@
 
 ## 设计模式
 
-+ [单例模式](notes/Design/单例模式.md)
++ [设计模式简介](notes/Design/Pattern/设计模式简介.md)
++ [单例模式](notes/Design/Pattern/单例模式.md)
+
+## UML
+
+### Redis
+
+[Redis雪崩、穿透、击穿](notes/DB/redis/Redis雪崩、穿透、击穿.md)
+
+
 
 ## 其他
 
