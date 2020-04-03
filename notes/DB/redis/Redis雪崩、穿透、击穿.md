@@ -23,3 +23,6 @@
 + 事前：Redis 高可用，主从+哨兵，Redis cluster，避免全盘崩溃。
 + 事中：本地 ehcache 缓存 + Hystrix 限流+降级，避免 MySQL 被打死。
 + 事后：Redis 持久化 RDB+AOF，一旦重启，自动从磁盘上加载数据，快速恢复缓存数据。
+
+
+
