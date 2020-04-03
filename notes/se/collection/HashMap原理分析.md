@@ -3,7 +3,7 @@
 + JDK1.7中采用的是**数组+链表实现，即使用链表处理冲突**，同一hash值的元素都存储在一个链表里 ，hash值相等的元素较多时，通过key值依次查找的效率较低 。
 + JDK1.8中，HashMap采用**数组+链表+红黑树实现，当链表长度超过阈值（8）时，将链表转换为红黑树,当红黑树节点小于等于6时，红黑树会转成链表**，这样大大减少了查找时间。 
 
-HashMap结构图（来源于网络）：![hashmap原理图](./hash底层原理.png)
+HashMap结构图（来源于网络）：![hashmap原理图](hash底层原理.png)
 
 #### HashMap扩容
 
@@ -23,6 +23,9 @@ Hash冲突解决方案：
 Node 在jdk1.8之前是插入链表头部的，在jdk1.8中是插入链表的尾部的。 
 
 抛开HashMap，Hash冲突有哪些解决办法：**开放定址法、链地址法、再哈希法**
+首先HashMap是线程不安全的，其主要体现：
+#1.在jdk1.7中，在多线程环境下，扩容时会造成环形链或数据丢失。
+#2.在jdk1.8中，在多线程环境下，会发生数据覆盖的情况。
 
 #### 基础源码分析
 
@@ -32,7 +35,7 @@ Node 在jdk1.8之前是插入链表头部的，在jdk1.8中是插入链表的尾
 public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneable, Serializable 
 ```
 
-![整体结构](./HashMap_class.png)
+![整体结构](HashMap_class.png)
 
 从类上可知HashMap继承自AbstractMap，实现了Map接口，从整体的结构图上看整个hashmap内容还是很多，包含了许多的内部类，其中Node是其核心。
 
@@ -237,7 +240,7 @@ static final int hash(Object key) {
 
 位置计算，eg：
 
-![hash位置计算](./HashMap-hash.png)
+![hash位置计算](HashMap-hash.png)
 
 #### 重要方法分析
 
@@ -252,7 +255,7 @@ public V put(K key, V value) {
 
 putVal方法执行过程 ：
 
-![putVal方法执行过程 ](./putVal_flow.png)
+![putVal方法执行过程 ](putVal_flow.png)
 
 1. 如果table为空(null)或length=0，则通过resize()方法创建或者扩容。
 2. 通过key计算hash值，进一步计算出添加到数组的索引i，如果table[i]=null,直接新建节点添加，然后执行第6步，如果table[i] != null,则执行第3步。
