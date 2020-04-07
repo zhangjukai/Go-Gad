@@ -20,11 +20,21 @@
         <durable>false</durable>
         <deliveryMode>NON_PERSISTENT</deliveryMode>
         <autoDelete>false</autoDelete>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <!-- 只打印ERROR日志 --> 
+            <level>ERROR</level> 
+        </filter>
     </appender>
 
-    <logger name="mel.mjj" level="ERROR" additivity="false">
-        <appender-ref ref="AMQP"/>
-    </logger>
+    <root level="INFO"> 
+            <!-- 文件输出 -->  
+            <appender-ref ref="ERROR" /> 
+            <appender-ref ref="INFO" /> 
+            <appender-ref ref="WARN" /> 
+            <appender-ref ref="DEBUG" /> 
+            <appender-ref ref="TRACE" /> 
+            <appender-ref ref="AMQP" /> 
+     </root>
 ```
 
 如果需要传输json格式的数据，需要把layout节点换为encoder，
@@ -47,6 +57,18 @@
         </pattern>
     </providers>
 </encoder>
+```
+同时pom.xml文件需要引入一下jar
+```java
+<dependency> 
+        <groupId>org.springframework.amqp</groupId> 
+        <artifactId>spring-rabbit</artifactId> 
+</dependency> 
+<dependency> 
+        <groupId>net.logstash.logback</groupId> 
+        <artifactId>logstash-logback-encoder</artifactId> 
+        <version>5.2</version> 
+</dependency>
 ```
 
 ### MQ监听消费
