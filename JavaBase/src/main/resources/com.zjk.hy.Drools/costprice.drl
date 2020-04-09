@@ -1,0 +1,13 @@
+package com.zjk.hy.Drools
+import com.zjk.hy.Drools.Person
+import com.zjk.hy.Drools.Car
+
+rule "大于等于60"
+when
+   $car:Car()
+   $person:Person(age>60) from $car.person
+then
+    System.out.println("大于等于60");
+    $car.setLastPrice($car.getPrice()*0.5);
+    System.out.println($car.getLastPrice());
+ end

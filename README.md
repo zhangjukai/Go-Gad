@@ -48,8 +48,14 @@
 
 + [设计模式简介](notes/Design/Pattern/设计模式简介.md)
 + [单例模式](notes/Design/Pattern/单例模式.md)
++ [工厂模式](notes/Design/Pattern/工厂模式.md)
++ [原型模式](notes/Design/Pattern/原型模式.md)
++ [建造者模式](notes/Design/Pattern/建造者模式.md)
++ [适配器模式](notes/Design/Pattern/适配器模式.md)
 
 ## UML
+
++ [UML简介](notes/Design/Pattern/UML/UML简介.md)
 
 ### Redis
 
