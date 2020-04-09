@@ -20,11 +20,10 @@
         <durable>false</durable>
         <deliveryMode>NON_PERSISTENT</deliveryMode>
         <autoDelete>false</autoDelete>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <!-- 只打印ERROR日志 --> 
-            <level>ERROR</level> 
-        </filter>
     </appender>
+    <logger name="mel.mjr" level="ERROR" additivity="true"> 
+        <appender-ref ref="AMQP"/> 
+    </logger>
 
     <root level="INFO"> 
             <!-- 文件输出 -->  
@@ -33,7 +32,6 @@
             <appender-ref ref="WARN" /> 
             <appender-ref ref="DEBUG" /> 
             <appender-ref ref="TRACE" /> 
-            <appender-ref ref="AMQP" /> 
      </root>
 ```
 
