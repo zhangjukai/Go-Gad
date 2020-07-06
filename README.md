@@ -52,6 +52,14 @@
 + [原型模式](notes/Design/Pattern/原型模式.md)
 + [建造者模式](notes/Design/Pattern/建造者模式.md)
 + [适配器模式](notes/Design/Pattern/适配器模式.md)
++ [代理模式](notes/Design/Pattern/代理模式.md)
++ [访问者模式](notes/Design/Pattern/访问者模式.md)
++ [观察者模式](notes/Design/Pattern/观察者模式.md)
++ [命令模式](notes/Design/Pattern/命令模式.md)
++ [模板方法模式](notes/Design/Pattern/模板方法模式.md)
++ [桥接模式](notes/Design/Pattern/桥接模式.md)
++ [装饰者模式](notes/Design/Pattern/装饰者模式.md)
++ [组合模式](notes/Design/Pattern/组合模式.md)
 
 ## UML
 
