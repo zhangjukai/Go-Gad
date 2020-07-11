@@ -1,0 +1,45 @@
+@startuml
+
+abstract class Command {
+    # final receiver:Receiver
+    + Command(receiver:Receiver)
+    + {abstract} execute():void
+}
+class ConcreteCommandA {
+    + ConcreteCommandA()
+    + ConcreteCommandA(receiver:Receiver)
+    + execute():void
+}
+
+class ConcreteCommandB {
+    + ConcreteCommandB()
+    + ConcreteCommandB(receiver:Receiver)
+    + execute():void
+}
+
+abstract class Receiver{
+    + {abstract} doSomeThing():void
+}
+class ConcreteReceiverA {
+    + doSomeThing():void
+}
+class ConcreteReceiverB {
+    + doSomeThing():void
+}
+class Invoker {
+    - command:Command
+    + setCommand(command:Command):void
+    + action():void
+}
+
+Invoker o-- Command
+Receiver <|-- ConcreteReceiverA
+Receiver <|-- ConcreteReceiverB
+Command <|-- ConcreteCommandA
+Command <|-- ConcreteCommandB
+Command o-- Receiver
+Client ..> Invoker
+Client ..> Command
+Client ..> Receiver : Client和Receiver是否直接关系\n需要根据具体的场景来定
+
+@enduml

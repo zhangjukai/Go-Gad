@@ -1,0 +1,27 @@
+@startuml
+class Client{}
+abstract class Abstraction{
+    - pImp : Implementor
+    + operation() :void
+    +Abstraction(Implementor):void
+}
+interface Implementor {
+    + operationImp():void
+}
+class RefinedAbstraction {
+    + operation():void
+    + RefinedAbstraction(Implementor)()
+}
+class ConcreteImplementorA{
+    + operationImp() : void
+}
+class ConcreteImplementorB{
+    + operationImp() : void
+}
+
+RefinedAbstraction --|> Abstraction
+ConcreteImplementorA ..|> Implementor
+ConcreteImplementorB ..|> Implementor
+Abstraction o--> Implementor
+Client ..> Abstraction
+@enduml

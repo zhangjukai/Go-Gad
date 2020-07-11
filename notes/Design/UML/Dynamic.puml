@@ -1,0 +1,18 @@
+@startuml
+
+interface Target {
+    + doSomeThing():String
+}
+class TargetImpl {
+    + doSomeThing():String
+}
+class ProxyObject {
+    - target : Object
+    + getProxyInstance():Object
+}
+class Client
+TargetImpl ..|> Target
+ProxyObject <.. Client
+TargetImpl <.. Client
+TargetImpl --o ProxyObject
+@enduml

@@ -43,6 +43,7 @@
 ## MyBatis
 
 - [MyBatis-Plus自动填充扩展](notes/MyBatis/MyBatis-Plus自动填充扩展.md)
+- [处理Blob字段.md](notes/MyBatis/处理Blob字段.md)
 
 ## 设计模式
 

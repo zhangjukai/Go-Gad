@@ -1,0 +1,11 @@
+@startuml
+class Target {
+    + opreation1():void
+    + opreation2():void
+}
+class ProxyObject {
+}
+class client
+client ..> ProxyObject
+ProxyObject ..> Target
+@enduml

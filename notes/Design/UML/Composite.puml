@@ -1,0 +1,8 @@
+@startuml
+
+Class Component {
+    - name:String
+    - childs:List<Component>
+}
+Component --o Component
+@enduml

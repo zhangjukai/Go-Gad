@@ -1,0 +1,33 @@
+@startuml
+interface Component {
+    + methodA():void
+    + methodB():void
+}
+
+class ConcreteComponent {
+    + methodA():void
+    + methodB():void
+}
+
+interface Decorator {
+    + methodA():void
+    + methodB():void
+}
+
+class ConcreteDecoratorA {
+    - obj:Component
+    + methodA():void
+    + methodB():void
+}
+
+class ConcreteDecoratorB {
+    - obj:Component
+    + methodA():void
+    + methodB():void
+}
+
+Component <|.. ConcreteComponent
+Component <|-- Decorator
+Decorator <|.. ConcreteDecoratorA
+Decorator <|.. ConcreteDecoratorB
+@enduml

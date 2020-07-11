@@ -1,0 +1,24 @@
+@startuml
+
+abstract class AbstractClass {
+    final template():void
+    operation1():void
+    operation2():void
+    operation3():void
+}
+
+class ConreteClassA {
+    operation1():void
+    operation2():void
+    operation3():void
+}
+class ConreteClassB {
+    operation1():void
+    operation2():void
+    operation3():void
+}
+AbstractClass <|-- ConreteClassA
+AbstractClass <|-- ConreteClassB
+ConreteClassA <.. Client
+ConreteClassB <.. Client
+@enduml

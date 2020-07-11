@@ -1,0 +1,15 @@
+@startuml
+class Client
+class Target {
+    + doSomeThing():String
+}
+class ProxyObject {
+    - target:Object
+    + getProxyInstance():Object
+    + intercept():void
+}
+MethodInterceptor <|.. ProxyObject
+Target --o ProxyObject
+Target <.. Client
+ProxyObject <.. Client
+@enduml

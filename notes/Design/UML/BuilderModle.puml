@@ -1,0 +1,28 @@
+@startuml
+note "建造者模式UML图" as N1
+
+Class Product{}
+Interface Builder{
+    + buildPart1():void // 构建part1
+    + buildPart2():void // 构建part2
+    + buildPart3():void // 构建part3
+    + getResult():void  // 获取构建结果
+}
+Class ConcreteBuilder {
+    + void buildPart1()
+    + void buildPart2()
+    + void buildPart3()
+    + void getResult()
+}
+Class Director {
+    - Builder builder
+    + Product construct()
+}
+Director o--Builder
+Builder o-- Product
+Builder "1" <|.. "N" ConcreteBuilder
+note left of Product : 产品类
+note left of Builder : 抽象建造者
+note right of ConcreteBuilder : 具体的建造者
+note left of Director : 指挥者
+@enduml
