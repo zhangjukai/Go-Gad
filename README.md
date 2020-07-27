@@ -79,3 +79,4 @@
 + [代码覆盖率和质量检测](notes/other/代码覆盖率和质量检测.md)
 + [分布式Header与IP的处理](notes/other/分布式Header与IP的处理.md)
 + [数据报表工具-BI等](notes/other/数据报表工具-BI等.md)
++ [Idea使用javap和hsdis](notes/other/Idea使用javap和hsdis.md)

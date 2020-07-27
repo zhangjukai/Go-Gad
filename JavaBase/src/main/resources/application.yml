@@ -1,0 +1,13 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /search
+spring:
+  application:
+    name: search
+  data:
+    elasticsearch:
+      cluster-name: my-cluster
+      cluster-nodes: localhost:9300
+  jackson:
+    default-property-inclusion: non_null
