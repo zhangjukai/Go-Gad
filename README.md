@@ -29,6 +29,7 @@
 ### 多线程/高并发
 
 - [多线程基础](notes/se/thread/Thread.md)
+- [ThreadLocal原理分析](notes/se/thread/ThreadLocal.md)
 - [synchronized原理](notes/se/thread/synchronized原理.md)
 - [JDK对synchronized的优化](notes/se/thread/JDK对synchronized的优化.md)
 - [Java内存模型](notes/se/thread/Java内存模型.md)
