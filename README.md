@@ -34,13 +34,13 @@
 - [JDK对synchronized的优化](notes/se/thread/JDK对synchronized的优化.md)
 - [Java内存模型](notes/se/thread/Java内存模型.md)
 - [volatile](notes/se/thread/volatile.md)
+- [JUC-Executor-线程池简介](notes/se/JUC/Executor/线程池简介.md)
 - [ReentrantLock简介](notes/se/JUC/ReentrantLock简介.md)
 - [JUC-AQS](notes/se/JUC/AbstractQueuedSynchronizer.md)
 - [JUC-AQS之ConditionObject](notes/se/JUC/AQS之ConditionObject.md)
 - [JUC-CountDownLatch源码分析](notes/se/JUC/CountDownLatch源码分析.md)
 - [JUC-CyclicBarrier源码分析](notes/se/JUC/CyclicBarrier源码分析.md)
 - [JUC-信号量Semaphore原理](notes/se/JUC/信号量Semaphore原理.md)
-- [JUC-Executor-线程池简介](notes/se/JUC/Executor/线程池简介.md)
 
 ## MyBatis
 
