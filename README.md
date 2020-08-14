@@ -36,6 +36,7 @@
 - [volatile](notes/se/thread/volatile.md)
 - [JUC-Executor-线程池简介](notes/se/JUC/Executor/线程池简介.md)
 - [Lock简介](notes/se/JUC/lock/Lock简介.md)
+- [atomic简介](notes/se/JUC/atomic/atomic简介.md)
 - [JUC-AQS](notes/se/JUC/AbstractQueuedSynchronizer.md)
 - [JUC-AQS之ConditionObject](notes/se/JUC/AQS之ConditionObject.md)
 - [JUC-CountDownLatch源码分析](notes/se/JUC/CountDownLatch源码分析.md)
