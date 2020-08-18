@@ -49,7 +49,7 @@ public interface Lock {
 + **不够灵活：** 加锁与释放锁的时机单一，读写锁更灵活
 + 无法知道是否**成功获取到锁**
 
-****
+**备注：** 不过自从JDK1.6对Synchronized优化过后，Synchronized的效率与ReentrantLock的效率以及差不多了，建议在能使用Synchronized的地方都采用Synchronized的，因为其简单、简洁，不需要手动释放锁。
 
 ****
 
