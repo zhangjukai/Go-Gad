@@ -2,13 +2,13 @@
 
 ​		一个可重入互斥Lock，具有与使用Synchronized隐式监视锁相同的基本行为和语义。同时ReentrantLock功能更加强大，使用更加灵活，具有公平锁、非公平锁、等待可中断、绑定多个条件等Synchronized不具备的功能。
 
-![](ReentrantLock.png)
+![](./res/ReentrantLock.png)
 
 ​		ReentrantLock实现了Lock，同时通过内部类FairSync和NonFairSync实现了公平锁和非公平锁的扩展功能。FairSync和NonFairSync都继承自ReentrantLock的另一个内部类`Sync`，`Sync`继承自**`AbstractQueuedSynchronizer`**，这个类就是所谓的**`AQS`**，并发编程的核心，其使用了**自旋**、**CAS**、**park-unpark** 等技术。AQS通过内部类`Node`维护一个队列，当出现多个线程争抢锁时，无法获取锁的线程会被封装为一个Node结点放入队列中，同时通过LockSupport.park实现线程阻塞，**`如果是单个线程或者多个线程交替执行，其实和队列无关，在JDK级别解决问题`** 。
 
 ## 基础源码介绍
 
-![](ReentrantLockMethod.png)
+![](./res/ReentrantLockMethod.png)
 
 ### ReentrantLock构造方法
 
@@ -68,6 +68,7 @@ static final class Node {
     volatile Node prev;
     volatile Node next;
     volatile Thread thread;
+    Node nextWaiter;
 }
 ```
 
@@ -75,7 +76,7 @@ static final class Node {
 
 以下所有介绍均以公平锁（FairSync）为列
 
-![](ReentrantLock-fairLock流程.png)
+![](./res/ReentrantLock-fairLock流程.png)
 
 ### 流程补充
 
@@ -111,13 +112,13 @@ return h != t && ((s = h.next) == null || s.thread != Thread.currentThread());
 
 ​		初始状态下AQS中的head和tail都为null
 
-![](AQS入队流程图01.png)
+![](./res/AQS入队流程图01.png)
 
 #### 第一个线程入队
 
 ​		当发生资源争夺时，第一个线程入队
 
-![](AQS入队流程图2.png)
+![](./res/AQS入队流程图2.png)
 
 这里有一个隐藏的操作，新建了一个thread=null的Node作为第一个节点，具体原因是队头的Node中的线程持有锁，而第一个线程获取锁是与队列没有关系的，没有入队的过程
 
@@ -125,7 +126,7 @@ return h != t && ((s = h.next) == null || s.thread != Thread.currentThread());
 
 #### 第N个线程入队
 
-![](AQS入队流程图3.png)
+![](./res/AQS入队流程图3.png)
 
 ## FairSync.lock源码分析
 

@@ -2,7 +2,7 @@
 
 #### 锁分类
 
-![](Lock.png)
+![](./res/Lock.png)
 
 #### 锁的开销
 
@@ -41,7 +41,7 @@ public interface Lock {
 
 #### Lock与synchronized对比
 
-![](Lock与sync对比.png)
+![](./res/Lock与sync对比.png)
 
 #### 为什么synchronized不够用
 
@@ -57,7 +57,7 @@ public interface Lock {
 
 #### 类结构：
 
-![](ReentrantLock.png)
+![](./res/ReentrantLock.png)
 
 一个可重入互斥的`Lock`，具有与使用`synchronized`隐式监视锁相同的基本行为和语义，同时ReentrantLock功能更加强大，使用更加灵活，具有公平锁、非公平锁、等待可中断、绑定多个条件等Synchronized不具备的功能。
 
@@ -78,7 +78,7 @@ public ReentrantLock(boolean fair) {
 
 #### 具体方法
 
-![](ReentrantLockMethod.png)
+![](./res/ReentrantLockMethod.png)
 
 其中`lock`、`lockInterruptibly`、`tryLock`、`unlock`、`newcondition`几个方法是ReentranLock实现的Lock接口中的方法，上面已经介绍过了。其他方法介绍如下：
 
@@ -105,7 +105,7 @@ public int getWaitQueueLength(Condition condition);
 
 ### ReentrantReadWriteLock简介
 
-![](ReentrantReadWriteLock.png)
+![](./res/ReentrantReadWriteLock.png)
 
 实现了ReadWritLock接口，实现了读写锁，整体结构与ReentrantLock相似，通过FairSync和NonfairSync实现了公平锁与非公平锁，通过WriteLock和ReadLock实现了读写锁。
 

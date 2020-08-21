@@ -37,11 +37,8 @@
 - [JUC-Executor-线程池简介](notes/se/JUC/Executor/线程池简介.md)
 - [Lock简介](notes/se/JUC/lock/Lock简介.md)
 - [atomic简介](notes/se/JUC/atomic/atomic简介.md)
-- [JUC-AQS](notes/se/JUC/AbstractQueuedSynchronizer.md)
-- [JUC-AQS之ConditionObject](notes/se/JUC/AQS之ConditionObject.md)
-- [JUC-CountDownLatch源码分析](notes/se/JUC/CountDownLatch源码分析.md)
-- [JUC-CyclicBarrier源码分析](notes/se/JUC/CyclicBarrier源码分析.md)
-- [JUC-信号量Semaphore原理](notes/se/JUC/信号量Semaphore原理.md)
+- [ReentrantLock深入理解](notes/se/JUC/lock/ReentrantLock深入理解简介.md)
+- [AQS-Condition](notes/se/JUC/lock/AQS-Condition.md)
 
 ## MyBatis
 
