@@ -109,7 +109,7 @@ public int getWaitQueueLength(Condition condition);
 
 实现了ReadWritLock接口，实现了读写锁，整体结构与ReentrantLock相似，通过FairSync和NonfairSync实现了公平锁与非公平锁，通过WriteLock和ReadLock实现了读写锁。
 
-#### ReentrantLock接口
+#### ReadWriteLock接口
 
 ```java
 public interface ReadWriteLock {

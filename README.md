@@ -1,9 +1,5 @@
 # Go-Gad
-​		 生活逐渐趋于平静，另外为了杜绝自己花太多时间在游戏上，决定把自己整个的技术重新梳理一遍，
- 针对自己五年的工作经验，希望有一个质的提升。
- 由于才开始，状态不是很好，写得比较简单，主要对自己想记录的内容做个记录
-
-部分记录是自己在公司利用空余时间完成的，在该项目中并没有相关具体的源代码
+​		 自己学习、复习中的一些记录，纯属于自己的一个备忘录。
 
 ## JavaSE
 
@@ -32,7 +28,7 @@
   + [多线程基础](notes/se/thread/Thread.md)
   + [synchronized原理](notes/se/thread/synchronized原理.md)
   + [JDK对synchronized的优化](notes/se/thread/JDK对synchronized的优化.md)
-  + [volatile原理](notes/se/thread/volatile.md)
+  + [volatile原理](notes/se/thread/Volatile.md)
   + [ThreadLocal原理](notes/se/thread/ThreadLocal.md)
 
 + 线程池
@@ -41,9 +37,10 @@
   + [atomic简介](notes/se/JUC/atomic/atomic简介.md)
 + Lock锁
   + [Lock简介](notes/se/JUC/lock/Lock简介.md)
-  + [ReentrantLock深入理解](notes/se/JUC/lock/ReentrantLock深入理解简介.md)
+  + [ReentrantLock深入理解](notes/se/JUC/lock/ReentrantLock深入理解.md)
   + [AQS-Condition深入理解](notes/se/JUC/lock/AQS-Condition.md)
   + [LockSupport深入理解](notes/se/JUC/lock/LockSupport.md)
+  + [ReentrantReadWriteLock深入理解](notes/se/JUC/lock/ReentrantReadWriteLock深入理解.md)
 + 同步工具类
   + [Condition深入理解](notes/se/JUC/lock/AQS-Condition.md)
   + [CountDownLatch深入理解](notes/se/JUC/util/CountDownLatch.md)
