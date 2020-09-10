@@ -30,7 +30,6 @@
   + [JDK对synchronized的优化](notes/se/thread/JDK对synchronized的优化.md)
   + [volatile原理](notes/se/thread/Volatile.md)
   + [ThreadLocal原理](notes/se/thread/ThreadLocal.md)
-
 + 线程池
   + [Executor-线程池简介](notes/se/JUC/Executor/线程池简介.md)
 + atomic原子类
@@ -48,6 +47,9 @@
   + [信号量Semaphore深入理解](notes/se/JUC/util/Semaphore.md)
   + [Phaser深入理解](notes/se/JUC/util/Phaser.md)
   + [Exchanger深入理解](notes/se/JUC/util/Exchanger.md)
++ 队列-Blocking
+  + [ArrayBlockingQueue深入理解](notes/se/JUC/Blocking/ArrayBlockingQueue深入理解.md)
+  + 
 
 ## MyBatis
 
