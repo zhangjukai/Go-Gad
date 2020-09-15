@@ -50,6 +50,7 @@
 + 队列-Blocking
   + [ArrayBlockingQueue深入理解](notes/se/JUC/Blocking/ArrayBlockingQueue深入理解.md)
   + [PriorityBlockingQueue深入理解](notes/se/JUC/Blocking/PriorityBlockingQueue深入理解.md)
+  + [LinkedBlockingQueue深入理解](notes/se/JUC/Blocking/LinkedBlockingQueue深入理解.md)
 
 ## MyBatis
 

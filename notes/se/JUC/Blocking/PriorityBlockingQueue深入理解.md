@@ -2,7 +2,7 @@
 
 ### 简介
 
-PriorityBlockingQueue是一种底层**基于数组实现的堆结构(在操作上类似于完全二叉树)**，实现了BlockingQueue接口的**有序无界阻塞队列**，需要在构造时指定队列的容量，是JDK1.5时随着JUC包引入的。
+PriorityBlockingQueue是一种底层**基于数组实现的堆结构(在操作上类似于完全二叉树)**，实现了BlockingQueue接口的**有序无界阻塞队列**，是JDK1.5时随着JUC包引入的。
 
 **继承结构：**
 
