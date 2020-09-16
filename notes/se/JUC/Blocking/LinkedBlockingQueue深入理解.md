@@ -8,7 +8,7 @@ LinkedBlocingQueue是一种基于**单链表**实现的阻塞队列，通过构�
 
 ![](./res/LinkedBlockingQueue.png)
 
-由上图可以看出，LinkedBlockingQueue的继承关系和ArrayBlockingQueue的完全一样，但是两者的实现还是不一样的，LinkedBlockingQueue是通过链表实现，ArrayBlockingQueue底层是通过数组实现的，两者的线程安全都是通过ReentrantLock来保证的，LinkedBlockingQueue的不同在于：**维护了两把锁——takeLock和putLock，takeLock用于控制出队的线程安全，putLock用于控制入队的线程安全**。
+由上图可以看出，LinkedBlockingQueue的继承关系和ArrayBlockingQueue的完全一样，但是两者的实现还是不一样的，LinkedBlockingQueue底层是通过单链表实现，ArrayBlockingQueue底层是通过数组实现的，两者的线程安全都是通过ReentrantLock来保证的，LinkedBlockingQueue的不同在于：**维护了两把锁——takeLock和putLock，takeLock用于控制出队的线程安全，putLock用于控制入队的线程安全**。
 
 ### 实现原理
 
@@ -204,3 +204,8 @@ private E dequeue() {
     return x;
 }
 ```
+
+### ArrayBlockingQueue与LinkedBlockingQueue的区别
+
+![](./res/LBQ与ABQ区别.png)
+
