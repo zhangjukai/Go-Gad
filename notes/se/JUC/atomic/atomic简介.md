@@ -4,7 +4,7 @@
 
 `java.util.concurrent.atomic` Java JUC提供的一个小型工具包，支持单个变量上的**无锁线程安全**编程，包含以下工具类：
 
-![](./res/atomic.png)
+<img src="./res/Atomic.png" style="zoom:80%;" />
 
 ### AtomicLong与LongAdder对比
 
