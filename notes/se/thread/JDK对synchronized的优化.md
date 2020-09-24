@@ -4,11 +4,11 @@
 
 **对象头Mark Word：**
 
-![Mark Word](./MarkWord.jpg)
+![Mark Word](./res/MarkWord.jpg)
 
 **锁升级过程：**
 
-![](sync-upgrade.jpg)
+![](./res/sync-upgrade.jpg)
 
 #### 偏向锁
 

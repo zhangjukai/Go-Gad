@@ -15,7 +15,7 @@ ThreadLocal 适用于每个线程需要自己独立的实例且该实例需要�
 
 **UML类图：**
 
-![](ThreadLocalUML.png)
+![](./res/ThreadLocalUML.png)
 
 ThreadLocal内嵌了ThreadLocalMap和SuppliedThreadLocal两个内部类，
 
@@ -24,7 +24,7 @@ ThreadLocal内嵌了ThreadLocalMap和SuppliedThreadLocal两个内部类，
 
 **存储结构与引用关系：**
 
-![](ThreadLocalRefDetail.png)
+![](./res/ThreadLocalRefDetail.png)
 
 ThreadLocal的存储结构和引用关系如上图所示：
 

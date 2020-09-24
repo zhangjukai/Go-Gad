@@ -46,7 +46,7 @@
 
 **操作系统层次的状态转换图：**
 
-![](线程状态转换图.png)
+![](./res/线程状态转换图.png)
 
 锁池：存放需要重新获取锁的线程
 
@@ -68,7 +68,7 @@ public enum State {
 
 生命周期具体流程：
 
-![](Thread.state.png)
+![](./res/Thread.state.png)
 
 #### 线程上下文切换
 
@@ -97,7 +97,7 @@ public enum State {
 
 **整理：** 
 
-![](ContextChange.png)
+![](./res/ContextChange.png)
 
 #### wait/notify 开销与问题
 
@@ -123,7 +123,7 @@ notify代替notifyAll的前提：一次通知至多唤醒一个线程，等待�
 
 内存屏障是对一类仅针对内存读、写操作指令的跨处理器架构的底层抽象（或称呼）；因为内屏障的存在临界区内的任何读写操作都无法被重排序到临界区外，同时锁具有排他性，所以在临界区执行的操作序列具有原子性
 
-![](MemoryBarrier.png)
+![](./res/MemoryBarrier.png)
 
 **锁与重排序：**
 
@@ -137,7 +137,7 @@ notify代替notifyAll的前提：一次通知至多唤醒一个线程，等待�
 
 **多线程应用：**
 
-![](多线程应用.png)
+![](./res/多线程应用.png)
 
 
 
@@ -155,7 +155,7 @@ notify代替notifyAll的前提：一次通知至多唤醒一个线程，等待�
 
 由于资源稀缺或程序自身的问题和缺陷导致线程一直处于非RUNNABLE状态，或者线程虽然处于RUNNABLE状态但是其要执行的任务却一直无法进展的故障现象。
 
-![](线程的活性故障.png)
+![](./res/线程的活性故障.png)
 
 #### synchronized与Lock的区别
 
@@ -204,5 +204,5 @@ A线程中执行b.jion(),A线程将暂停等待b线程执行完成
 
 示例见：**JavaBase-com.zjk.hy.thread.JoinTest**
 
-![](sleepVSwait.png)
+![](./res/sleepVSwait.png)
 
