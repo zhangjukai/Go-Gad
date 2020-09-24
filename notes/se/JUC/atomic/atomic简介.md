@@ -32,7 +32,7 @@ public long sum() {
 
 基本都是通过Unsafe+CAS实现，Unsafe于JDK9移除
 
-CAS相关原理见：[CAS深入理解](notes/se/thread/CAS深入理解.md)
+CAS相关原理见：[CAS深入理解](../../thread/CAS深入理解.md)
 
 #### Unsafe简介
 
