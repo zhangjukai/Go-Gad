@@ -5,6 +5,7 @@
 
 ### 部分知识点整理
 
+- [java对象在内存中的存储布局](notes/se/java对象在内存中的存储布局.md)
 - [Java equals、hashCode整理](notes/se/equals与hashCode整理.md)
 - [Java  Comparable 和 Comparator](notes/se/Comparable和Comparator.md)
 
