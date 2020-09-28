@@ -737,3 +737,10 @@ public class BiasedLockTest {
 ## 总结
 
 synchronized底层是通过monitor来实现的，对应着jvm（Hotspot）源码中的ObjectMonitor，是一个重量级锁，从JDK1.6开始，jvm对synchronized进行了一系列的优化，实现了锁升级功能(**无锁->偏向锁->轻量级锁->重量级锁**)使其性能得到了很大的提升，而锁升级功能主要借助于java对象头中的MarkWord来实现的。
+
+**按照层级划分，Synchronized实现过程如下：** 
+
+1. java代码：synchronized
+2. .class文件（字节码层面）：monitorenter、monitorexit
+3. 执行过程中：锁升级
+4. 底层汇编指令：lock cmpxchg

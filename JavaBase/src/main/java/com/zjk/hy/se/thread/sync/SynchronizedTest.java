@@ -7,7 +7,4 @@ public class SynchronizedTest {
             System.out.println("aaaaa");
         }
     }
-    public synchronized void test(){
-        System.out.println("bbbbbb");
-    }
 }

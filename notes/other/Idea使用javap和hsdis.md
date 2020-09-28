@@ -12,11 +12,11 @@
 
 3、在Idea中打开  run > Edit Configurations
 
-![](RunEdit.png)
+![](./res/RunEdit.png)
 
 4、配置VM参数
 
-![](ConfigVM.png)
+![](./res/ConfigVM.png)
 
 -server -Xcomp -XX:+UnlockDiagnosticVMOptions -XX:+PrintAssembly -XX:CompileCommand=compileonly,* VolatileTest.*
 
@@ -60,7 +60,7 @@ Code:
 
 #### 使用javap
 
-![](ConfigJavaP.png)
+![](./res/ConfigJavaP.png)
 
 Arguments: 
 
@@ -76,7 +76,7 @@ $OutputPath$/$FileDirRelativeToSourcepath$
 
 具体的java文件上右键：
 
-![](runJavaP.png)
+![](./res/runJavaP.png)
 
 得到java字节码，结果如下：
 
