@@ -1,12 +1,8 @@
-## Synchronized实现原理
+## synchronized实现原理
 
 ### 简介
 
 synchronized是java提供的一个关键字，是由JVM实现的，用于在多线程环境下保证线程间的同步，是一个非公平锁。
-
-Synchronized具有如下特点：
-
-+ 
 
 ### 使用方式
 
@@ -96,7 +92,7 @@ https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.monitore
 
 大体的意思是，会隐式的调用monitorenter和monitorexit，在执行同步方法前会调用monitorenter，同步方法执行完成会调用monitorexit。
 
-### Monitor源码分析
+### monitor源码分析
 
 经过上面的分析，我们知道，Synchronized内部其实是通过Monitor来实现的，要分析其内部实现我们需要准备一份hotspot的源代码，JVM是一种规范，而hotspot是其众多实现中用得较多的一种。
 
@@ -496,7 +492,7 @@ void ATTR ObjectMonitor::exit(bool not_suspended, TRAPS) {
 
    被唤醒的线程会回到`ObjectMonitor::EnterI`方法中继续执行，去竞争monitor锁。
 
-#### Monitor总结
+#### monitor总结
 
 在以上的源码分析中，许多地方都使用到了CAS，通过工具打印出相应的汇编指令，截取其中一部分，如下：
 
@@ -508,7 +504,7 @@ void ATTR ObjectMonitor::exit(bool not_suspended, TRAPS) {
 
 CAS原理：[CAS深入理解](./CAS深入理解.md)
 
-### Monitor是重量级锁
+### monitor-重量级锁
 
 ObjectMonitor源码中多处使用了Atomic::cmpxchg_相关的方法，该类方法是操作系统的内核函数，在锁竞争的过程中如果锁竞争失败，会调用park()方法，获取到锁后又会调用unpark()方法唤醒其他的线程，都会导致用户态和内核态的切换，这种切换会消耗操作系统大量的资源，所以锁Monitor是一个重量级锁。
 
@@ -530,3 +526,214 @@ Linux系统体系结构：
 由此可见用户态切换至内核态需要传递许多变量，同时内核还需要保护好用户态在切换时的一些寄存器
 值、变量等，以备内核态切换回用户态。这种切换就带来了大量的系统资源消耗，这就是在
 synchronized未优化之前，效率低的原因。  
+
+## synchronized优化-锁升级
+
+在分析完synchronized原理过后，我们知道synchronized是一个重量级锁。JVM自JDK1.6开始借助Java的对象头（切确的说是java对象头中的Mark Word），对synchronized同步锁做了充分的优化，实现了锁升级功能(**无锁->偏向锁->轻量级锁->重量级锁**),使其性能在大多数情况下，与Lock锁不相上下 。
+
+64位系统中Mark Word结构如下：
+
+![Mark Word](./res/markwords.png)
+
+对于Mark Word以及java对象在内存中的存储布局见：[java对象在内存中的存储布局](../java对象在内存中的存储布局.md)
+
+### 偏向锁
+
+#### 偏向锁简介
+
+偏向锁的意思是这个锁会偏向于第一个获得它的线程，会在Mark Word中存储该锁偏向的线程ID，以后该线程进入和退出同步代码块时，只需要检查是否为偏向锁，锁标志位以及ThreadID即可。
+
+#### 偏向锁原理
+
+当线程第一次执行同步代码块时，偏向锁的处理流程如下：
+
+1. 虚拟机会把是否为偏向锁设置为1，
+2. 然后通过CAS把当前线程的ID记录到MarkWord中
+3. 持有偏向锁的线程以后每次执行同步代码块都不用做其他的操作
+
+偏向锁在Mark Word中的存储结构如下：
+
+![](./res/markword-pxs.png)
+
+#### 偏向锁示例以及MarkWord分析
+
+下面通过示例代码要验证偏向锁的存储布局，示例代码如下：
+
+```java
+import org.openjdk.jol.info.ClassLayout;
+public class BiasedLockTest {
+    private static Object obj = new Object();
+    public static void main(String[] args) {
+            new Thread(()->{
+                for (int i = 0; i < 5; i++) {
+                    synchronized (obj) {
+                        System.out.println(ClassLayout.parseInstance(obj).toPrintable());
+                    }
+                }
+            }).start();
+    }
+}
+```
+
+打印结果如下：
+
+![](./res/basic-no.png)
+
+要理解上面的输出结果，我们需要再提一个内容，markword在内存中的二进制数据，如下图所示：
+
+![](../res/markword-bt.png)
+
+共8个字节，与输出结果中的前两行object header相对应，需要说明的是，通过ClassLayout输出的结果实际是反过来的，如下：
+
+![](./res/markword-bt.png)
+
+这样对照到输出结果，圈出来的三位就是最后的偏向锁和锁标志位，但是结果与我们预期的不一样啊，如果是偏向锁应该是**101**才对，而输出的是**000**，是一个轻量级锁/自旋锁，这是因为：
+
+> 偏向锁在Java 6之后是默认启用的，但在应用程序启动几秒钟之后才激活，可以使用 -
+> XX:BiasedLockingStartupDelay=0 参数关闭延迟，如果确定应用程序中所有锁通常情况下处于竞争
+> 状态，可以通过 XX:-UseBiasedLocking=false 参数关闭偏向锁  
+
+加上参数过后的输出结果如下：
+
+![](./res/basic-yes.png)
+
+所有都输出的是**101**，说明在没有其他线程来竞争的情况下都是使用的偏向锁。
+
+#### 偏向锁撤销
+
+一旦出现多个线程竞争一个锁时，必须撤销偏向锁，锁升级为轻量级锁。
+
+偏向锁撤销流程：
+
+1. 撤销动作必须等到全局安全点
+2. 暂停拥有偏向锁的线程，判断锁对象是否处于被锁定状态
+3. 撤销偏向锁
+   + 如果恢复到无锁状态，则是否为偏向锁位置设为0，锁标志位设为01
+   + 如果升级为轻量级锁，则取消是否为偏向锁位置，MarkWord中的63位用于存储**线程栈中Lock Record的指针**，锁标志位设置为00
+
+#### 偏向锁升级为轻量级锁示例
+
+将前面演示偏向锁的小程序略做修改后，如下：
+
+```java
+import org.openjdk.jol.info.ClassLayout;
+public class BiasedLockTest {
+    private static Object obj = new Object();
+    public static void main(String[] args) {
+        new Thread(() -> {
+            synchronized (obj) {
+                System.out.println(ClassLayout.parseInstance(obj).toPrintable());
+            }
+            new Thread(() -> {
+                synchronized (obj) {
+                    System.out.println(ClassLayout.parseInstance(obj).toPrintable());
+                }
+            }).start();
+        }).start();
+    }
+}
+```
+
+输出结果如下：
+
+![](./res/basic-up.png)
+
+由输出结果我们可以看出，第一个线程执行时偏向锁和锁标志位为**101**，表示为偏向锁，当第二线程执行时，锁标志位为**00**，表示轻量级锁，此处已经取消了偏向锁位。
+
+轻量级锁在后面详细说明。
+
+#### 偏向锁的好处
+
+偏向锁是在只有一个线程执行同步块时进一步提高性能，适用于一个线程反复获得同一把锁的情况，偏向
+锁可以提高带有同步但无竞争的程序性能。
+它同样是一个带有效益权衡性质的优化，也就是说，它并不一定总是对程序运行有利，如果程序中大多
+数的锁总是被多个不同的线程访问比如线程池，那偏向模式就是多余的。  
+
+### 轻量级锁
+
+#### 简介
+
+轻量级锁时JDK1.6引入的，所谓的轻量级是相对于monitor的重量级锁而言的。引入轻量级锁的目的是在多线程交替执行同步代码块的情况下，尽量避免重量级锁引起的性能消耗。但是如果多个线程同一时刻进入临界区，会导致轻量级锁膨胀升级为重量级锁。
+
+#### 轻量级锁原理
+当关闭偏向锁功能或者多个线程竞争偏向锁导致偏向锁升级为轻量级锁，则会尝试获取轻量级锁，其步
+骤如下： 
+
+1. 判断当前对象是否处于无锁状态（hashcode、0、01），如果是，则JVM首先将在当前线程的栈帧
+   中建立一个名为锁记录（Lock Record）的空间，用于存储锁对象目前的Mark Word的拷贝（官方
+   把这份拷贝加了一个Displaced前缀，即Displaced Mark Word），将对象的Mark Word复制到栈
+   帧中的Lock Record中，将Lock Reocrd中的owner指向当前对象。
+2.  JVM利用CAS操作尝试将对象的Mark Word更新为指向Lock Record的指针，如果成功表示竞争到
+   锁，则将锁标志位变成00，执行同步操作。
+3.  如果失败则判断当前对象的Mark Word是否指向当前线程的栈帧，如果是则表示当前线程已经持
+   有当前对象的锁，则直接执行同步代码块；否则只能说明该锁对象已经被其他线程抢占了，这时轻
+   量级锁需要膨胀为重量级锁，锁标志位变成10，后面等待的线程将会进入阻塞状态。  
+
+轻量级锁在Mark Word中的存储结构如下：
+
+![](./res/flowLock.png)
+
+具体的二进制数据如下：
+
+![](./res/basic-up.png)
+
+上图的内容在上面已经介绍过了，锁升级的过程，锁标志位**00**就代表是轻量级锁
+
+#### 轻量级锁的释放
+
+轻量级锁的释放也是通过CAS操作来进行的，主要步骤如下：
+
+1. 取出在获取轻量级锁保存在Displaced Mark Word中的数据。
+2. 用CAS操作将取出的数据替换当前对象的Mark Word中，如果成功，则说明释放锁成功。
+3.  如果CAS操作替换失败，说明有其他线程尝试获取该锁，则需要将轻量级锁需要膨胀升级为重量级
+   锁  
+
+#### 轻量级锁好处
+在多线程交替执行同步块的情况下，可以避免重量级锁引起的性能消耗 。
+
+### 重量级锁
+
+对于Synchronized而言，重量级锁就是持有monitor对象，前面已经详细介绍过了，下面就通过一个示例对照一下重量级锁的MarkWord。
+
+将前面使用过的示例调整为：
+
+```java
+import org.openjdk.jol.info.ClassLayout;
+public class BiasedLockTest {
+    private static Object obj = new Object();
+    public static void main(String[] args) {
+        new Thread(() -> {
+            synchronized (obj) {
+                System.out.println(ClassLayout.parseInstance(obj).toPrintable());
+            }
+        }).start();
+        new Thread(() -> {
+            synchronized (obj) {
+                System.out.println(ClassLayout.parseInstance(obj).toPrintable());
+            }
+        }).start();
+    }
+}
+```
+
+输出结果如下：
+
+![](./res/zlj-lock.png)
+
+对应的MarkWord为：
+
+![](./res/weightlock-mw.png)
+
+## 编码中使用Synchronized的注意项
+
++ 减少synchronized的范围 
+
+  同步代码块中尽量短，减少同步代码块中代码的执行时间，减少锁的竞争。  
+
++ 降低synchronized锁的粒度  
+
+  将一个锁拆分为多个锁提高并发度 
+
+## 总结
+
+synchronized底层是通过monitor来实现的，对应着jvm（Hotspot）源码中的ObjectMonitor，是一个重量级锁，从JDK1.6开始，jvm对synchronized进行了一系列的优化，实现了锁升级功能(**无锁->偏向锁->轻量级锁->重量级锁**)使其性能得到了很大的提升，而锁升级功能主要借助于java对象头中的MarkWord来实现的。

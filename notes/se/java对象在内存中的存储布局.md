@@ -4,11 +4,76 @@
 
 ![](./res/java对象内存存储布局.png)
 
-以上为java中普通对象和数组在内存中的存储布局，在了解一个java对象在内存中如何存储，占用了多少内存，还需要了解一些JVM基本的参数。
+以上为JVM中普通对象和数组在内存中的存储布局，为什么会是这样的一个结构，因为这是JVM规范中定义的。
+
+### Hotspot对应源码
+
+HotSpot采用instanceOopDesc和arrayOopDesc来描述对象头，arrayOopDesc对象用来描述数组类
+型。instanceOopDesc的定义的在Hotspot源码的 instanceOop.hpp 文件中，另外，arrayOopDesc
+的定义对应 arrayOop.hpp 。
+
+**instanceOop.hpp源码：**
+
+```c++
+class instanceOopDesc : public oopDesc {
+ public:
+  // aligned header size.
+  static int header_size() { return sizeof(instanceOopDesc)/HeapWordSize; }
+
+  // If compressed, the offset of the fields of the instance may not be aligned.
+  static int base_offset_in_bytes() {
+    // offset computation code breaks if UseCompressedClassPointers
+    // only is true
+    return (UseCompressedOops && UseCompressedClassPointers) ?
+             klass_gap_offset_in_bytes() :
+             sizeof(instanceOopDesc);
+  }
+
+  static bool contains_field_offset(int offset, int nonstatic_field_size) {
+    int base_in_bytes = base_offset_in_bytes();
+    return (offset >= base_in_bytes &&
+            (offset-base_in_bytes) < nonstatic_field_size * heapOopSize);
+  }
+};
+```
+
+从上面源码可以看到，instanceOopDesc继承自oopDesc，，oopDesc的定义在Hotspot
+源码中的 oop.hpp 文件中，代码如下：
+
+```c++
+class oopDesc {
+    friend class VMStructs;
+    private:
+    volatile markOop _mark;
+    union _metadata {
+    Klass* _klass;
+    narrowKlass _compressed_klass;
+    } _metadata;
+    // Fast access to barrier set. Must be initialized.
+    static BarrierSet* _bs;
+    // 省略其他代码
+};
+```
+
+其中` markOop _mark`对应Mark Word，`Klass* _klass`对应Klass Pointer，如果开启了指针压缩，则对应`narrowKlass _compressed_klass`。
+
+_mark源码位于 markOop.hpp 中 ，代码中说明如下：
+
+![](./res/markword_remark.png)
+
+以64位为列，翻译过来如下图所示：
+
+![](./res/markwords.png)
+
+Mark Word总共8个字节64位，与之对应的二进制码如下图：
+
+![](./res/markword-bt.png)
+
+对于markword中64位如何变化的，此处我们不做关注，在Synchronized优化锁升级的过程中再做详细的分析
 
 ### JVM相关参数查看
 
-在命令行中输入以下命令`java -XX:+PrintCommandLineFlags -version`,得到如下结果：
+在了解一个java对象在内存中如何存储，占用了多少内存，还需要了解一些JVM基本的参数。在命令行中输入以下命令`java -XX:+PrintCommandLineFlags -version`,得到如下结果：
 
 ```java
 -XX:InitialHeapSize=197070592 -XX:MaxHeapSize=3153129472 -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:-UseLargePagesIndividualAllocation -XX:+UseParallelGC
@@ -100,61 +165,3 @@ Space losses: 0 bytes internal + 0 bytes external = 0 bytes total
 
 与obj对象不同的是user对象中存在一个变量`name`，` 12 4 java.lang.String User.name`此处占用了4个字节，8+4+4=16，能够被8整除不需要补齐，所以user对象也是占用了16个字节。
 
-### Hotspot对应源码
-
-HotSpot采用instanceOopDesc和arrayOopDesc来描述对象头，arrayOopDesc对象用来描述数组类
-型。instanceOopDesc的定义的在Hotspot源码的 instanceOop.hpp 文件中，另外，arrayOopDesc
-的定义对应 arrayOop.hpp 。
-
-**instanceOop.hpp源码：**
-
-```c++
-class instanceOopDesc : public oopDesc {
- public:
-  // aligned header size.
-  static int header_size() { return sizeof(instanceOopDesc)/HeapWordSize; }
-
-  // If compressed, the offset of the fields of the instance may not be aligned.
-  static int base_offset_in_bytes() {
-    // offset computation code breaks if UseCompressedClassPointers
-    // only is true
-    return (UseCompressedOops && UseCompressedClassPointers) ?
-             klass_gap_offset_in_bytes() :
-             sizeof(instanceOopDesc);
-  }
-
-  static bool contains_field_offset(int offset, int nonstatic_field_size) {
-    int base_in_bytes = base_offset_in_bytes();
-    return (offset >= base_in_bytes &&
-            (offset-base_in_bytes) < nonstatic_field_size * heapOopSize);
-  }
-};
-```
-
-从上面源码可以看到，instanceOopDesc继承自oopDesc，，oopDesc的定义在Hotspot
-源码中的 oop.hpp 文件中，代码如下：
-
-```c++
-class oopDesc {
-    friend class VMStructs;
-    private:
-    volatile markOop _mark;
-    union _metadata {
-    Klass* _klass;
-    narrowKlass _compressed_klass;
-    } _metadata;
-    // Fast access to barrier set. Must be initialized.
-    static BarrierSet* _bs;
-    // 省略其他代码
-};
-```
-
-其中` markOop _mark`对应Mark Word，`Klass* _klass`对应Klass Pointer，如果开启了指针压缩，则对应`narrowKlass _compressed_klass`。
-
-_mark源码位于 markOop.hpp 中 ，代码中说明如下：
-
-![](./res/markword_remark.png)
-
-以64位为列，翻译过来如下图所示：
-
-![](./res/markwords.png)

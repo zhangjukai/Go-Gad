@@ -28,8 +28,7 @@
   + [Java内存模型](notes/se/thread/Java内存模型.md)
   + [多线程基础](notes/se/thread/Thread.md)
   + [CAS深入理解](notes/se/thread/CAS深入理解.md)
-  + [synchronized原理](notes/se/thread/synchronized原理.md)
-  + [JDK对synchronized的优化](notes/se/thread/JDK对synchronized的优化.md)
+  + [synchronized原理深入分析](notes/se/thread/synchronized原理深入分析.md)
   + [volatile原理](notes/se/thread/Volatile.md)
   + [ThreadLocal原理](notes/se/thread/ThreadLocal.md)
 + 线程池
