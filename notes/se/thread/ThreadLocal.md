@@ -2,7 +2,7 @@
 
 #### 什么是ThreadLocal变量
 
-ThreadLoal 变量，线程局部变量，同一个 ThreadLocal 所包含的对象，在不同的 Thread 中有不同的副本，并且不同的Thread无法相互访问。
+ThreadLoal 变量，线程本地变量，同一个 ThreadLocal 所包含的对象，在不同的 Thread 中有不同的副本，并且不同的Thread无法相互访问。
 
 ThreadLocal 适用于每个线程需要自己独立的实例且该实例需要在多个方法中被使用，也即变量在线程间隔离而在方法或类间共享的场景。
 

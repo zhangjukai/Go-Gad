@@ -1,6 +1,6 @@
 ## SynchronousQueue深入理解
 
-SynchronousQueue是一种底层基于**队列**和**栈**实现的，实现了BlockingQueue接口的特殊的阻塞队列，有如下特点：
+SynchronousQueue是一种底层基于**队列**或**栈**实现的，实现了BlockingQueue接口的特殊的阻塞队列，没有容量，用于两个线程间进行数据交换，有如下特点：
 
 + 队列没有容量，不存储元素，也无法遍历
 + 入队线程和出队线程必须一一匹配，任意先到达的线程会阻塞，反之亦然
@@ -52,13 +52,42 @@ abstract static class Transferer<E> {
 }
 ```
 
-### 具体实现分析
+### 示例
 
-#### 非公平策略—栈结构
+使用SynchronousQueue实现两个线程交替输出：
 
 ```java
-static final class TransferStack<E> extends Transferer<E> {
-	
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.SynchronousQueue;
+
+public class SynchronizedQueueTest {
+    public static void main(String[] args) {
+        final SynchronousQueue<String> queue = new SynchronousQueue<>();
+        new Thread(()->{
+            for (int i = 0; i < 5; i++) {
+                try {
+                    System.out.println(Thread.currentThread().getName()+"-"+queue.take());
+                    queue.put(""+(i+1));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        },"t1").start();
+
+        new Thread(()->{
+            List<String> list = Arrays.asList("a", "b", "c", "d", "e");
+            for (int i = 0; i < list.size(); i++) {
+                try {
+                    queue.put(list.get(i));
+                    System.out.println(Thread.currentThread().getName()+"-"+queue.take());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        },"t2").start();
+    }
 }
+
 ```
 

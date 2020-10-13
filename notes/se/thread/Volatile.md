@@ -73,3 +73,38 @@ volatile关键字的作用：保障可见性、保障有序性、保障long/doub
   由于Volatile的MESI缓存一致性协议，需要不断的从主内存嗅探和cas不断循环，无效交互会导致总线带宽达到峰值。
 
   所以不要大量使用Volatile，至于什么时候去使用Volatile什么时候使用锁，根据场景区分。
+
+#### volatile注意点
+
+1. 最好用于修饰基本类型，不要用来修饰引用类型，引用类型变量存放的是对象地址，修改对象中的内容时，内存地址不会发生变化
+2. 不是完全确定的情况不要使用volatile
+
+对于第一点存在的问题，示例如下：
+
+```java
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
+public class Demo01 {
+    private static volatile ArrayList<Integer> list = new ArrayList<>();
+    public static void main(String[] args) {
+        new Thread(()->{
+            for (int i = 0; i < 10; i++) {
+                list.add(i);
+                System.out.println("i:"+i);
+            }
+        }).start();
+
+        new Thread(()->{
+            while (true) {
+                if (list.size()==5) {
+                    System.out.println("到达退出点");
+                    break;
+                }
+            }
+        }).start();
+    }
+}
+```
+
+上述代码的运行结果是：永远不会打印"到达退出点"，原因是因为list的值是ArrayList对象的内存地址，一直没有发生过改变。
