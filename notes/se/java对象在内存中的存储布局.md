@@ -84,7 +84,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.241-b07, mixed mode)
 
 参数说明：
 
-+ **InitialHeapSize：** 其实堆大小
++ **InitialHeapSize：** 初始化堆大小
 + **MaxHeapSize：** 最大堆大小
 + **UseCompressedClassPointers：** 压缩指针，在一个64位的JVM中，一个指针应该是64位（8字节），开启了指针压缩过后，指针的大小会被压缩为4个字节
 + **UseCompressedOops：** ordinary Object Pointer 普通对象指针（对象内的一个属性指向了另一个对象），同样也是被压缩的，占4个字节

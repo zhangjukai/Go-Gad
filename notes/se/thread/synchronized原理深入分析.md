@@ -724,6 +724,16 @@ public class BiasedLockTest {
 
 ![](./res/weightlock-mw.png)
 
+### 锁消除
+
+Java虚拟机在JIT编译时，通过对运行上下文的扫描，去除不可能存在共享资源竞争的锁，通过锁消除，可以节省毫无意义的请求锁的时间。锁消除涉及一项关键技术为逃逸分析。
+
+**逃逸分析：**
+
+所谓的逃逸分析就是观察某一个变量是否会逃出某个作用域。通俗的说就是变量对象只在当前函数内使用，因而改为在栈上申请空间，栈是函数运行完就立即清理的。
+
+逃逸分析必须在-server模式下进行。可以使用-XX:+DoEscapeAnalysis参数打开逃逸分析，使用-XX:EliminateLocks参数可以打开锁消除。
+
 ## 编码中使用Synchronized的注意项
 
 + 减少synchronized的范围 

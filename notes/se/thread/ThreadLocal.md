@@ -76,8 +76,6 @@ ThreadLocalMap使用ThreadLocal的弱引用作为key，如果一个ThreadLocal�
 
 **解决办法：每次使用完ThreadLocal，都调用它的remove()方法，清除数据**
 
-
-
 #### 源码分析
 
 ##### ThreadLocalMap源码分析

@@ -209,3 +209,9 @@ private E dequeue() {
 
 ![](./res/LBQ与ABQ区别.png)
 
+### LinkedBlockingQueue与ConcurrentLinkedQueue
+
+ConcurrentLinkedQueue底层同样是基于链表实现的，在保证线程安全方面并没有利用锁或底层同步原语，而是完全基于**自旋+CAS**的方式实现了该队列。
+
+ConcurrentLinkedQueue不具备实时的数据一致性。
+
