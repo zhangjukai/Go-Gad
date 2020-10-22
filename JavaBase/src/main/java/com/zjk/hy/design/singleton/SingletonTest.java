@@ -1,18 +1,23 @@
 package com.zjk.hy.design.singleton;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 public class SingletonTest {
-    public static void main(String[] args) {
-        /*Singleton_1 Singleton_1_1 = Singleton_1.getInstance();
-        Singleton_1 Singleton_1_2 = Singleton_1.getInstance();
-        System.out.println(Singleton_1_1==Singleton_1_2);*/
-        Singleton_2 singleton2_1 = Singleton_2.getInstance();
-        Singleton_2 singleton2_2 = Singleton_2.getInstance();
-        System.out.println(singleton2_1 == singleton2_1);
-        Singleton3 singleton3_1 = Singleton3.getInstance();
-        Singleton3 singleton3_2 = Singleton3.getInstance();
-        System.out.println(singleton3_1==singleton3_2);
-        Singleton4 singleton4_1 = Singleton4.getInstance();
-        Singleton4 singleton4_2 = Singleton4.getInstance();
-        System.out.println(singleton4_1 == singleton4_2);
+    public static void main(String[] args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        /*Singleton_enum instance = Singleton_enum.INSTANCE;
+        instance.printn();
+        Constructor<Singleton_enum> constructor = Singleton_enum.class.getDeclaredConstructor(String.class, int.class);
+        constructor.setAccessible(true);
+        Singleton_enum instance1 = constructor.newInstance("INSTANCE", 0);*/
+
+
+        Class<Singleton_2> clazz = Singleton_2.class;
+        Constructor<Singleton_2> constructor = clazz.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        Singleton_2 singleton_2 = constructor.newInstance();
+        Singleton_2 instance = Singleton_2.getInstance();
+        System.out.println(instance==singleton_2);
+
     }
 }
