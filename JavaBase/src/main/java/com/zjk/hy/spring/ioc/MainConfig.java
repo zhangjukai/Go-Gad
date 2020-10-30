@@ -35,4 +35,5 @@ public class MainConfig {
     public Company company(){
         return new Company("世界之心");
     }
+
 }

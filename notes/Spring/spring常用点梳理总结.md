@@ -879,3 +879,421 @@ AopConfigUtils是AOP的工具类,`registerAspectJAnnotationAutoProxyCreatorIfNec
       3. 效果：
          + 正常执行：前置通知-》目标方法-》后置通知-》返回通知
          + 出现异常：前置通知-》目标方法-》后置通知-》异常通知
+
+## 声明式事务使用
+
+### 配置事务管理器
+
+```java
+@Bean
+public PlatformTransactionManager transactionManager(){
+    // 需要设置数据源对象
+}
+```
+
+### 开启基于注解的事务管理功能
+
+在主配置类上添加@EnableTransactionManagement注解
+
+### 具体使用
+
+在需要事务管理的方法上标注@Transactional注解
+
+## Spring的扩展原理
+
+### BeanPostProcessor
+
+Bean后置处理器，在Bean创建完成初始化前后执行,前面大体介绍过
+
+### BeanFactoryPostProcessor
+
+BeanFactory的后置处理器，在BeanFactory标注初始化之后（所有Bean的定义已经加载并保存到beanFactory中，但是bean的实例还未创建）调用，来定制和修改BeanFactory的内容。
+
+```java
+@FunctionalInterface
+public interface BeanFactoryPostProcessor {
+   void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws 、
+       BeansException;
+}
+```
+
+#### 实现原理
+
+1. ioc容器创建对象
+2. invokeBeanFactoryPostProcessors(beanFactory);
+   1. 直接在BeanFactory中找到所有类型是BeanFactoryPostProcessor的组件，并执行他们的方法
+   2. 在初始化创建其他组件前面执行
+
+### BeanDefinitionRegistryPostProcessor
+
+该接口继承自BeanFactoryPostProcessor，在所有bean定义信息将要被加载，bean实例还未创建的时候执行，**优先于BeanFactoryPostProcessor执行**；可以利用BeanDefinitionRegistryPostProcessor给容器中再额外添加一些组件。
+
+```java
+public interface BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor {
+   void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws 
+       BeansException;
+}
+```
+
+#### 使用示例
+
+```java
+@Component
+public class MyBeanDefinitionRegistryPostProcessor implements 
+    BeanDefinitionRegistryPostProcessor {
+    @Override
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws 
+        BeansException {
+        System.out.println("+++++postProcessBeanDefinitionRegistry+++");
+        System.out.println("registry-count:"+registry.getBeanDefinitionCount());
+        RootBeanDefinition definition = new RootBeanDefinition(Dog.class);
+        registry.registerBeanDefinition("dog",definition);
+
+        AbstractBeanDefinition carBeanDefinition = 
+            BeanDefinitionBuilder.rootBeanDefinition(Car.class).getBeanDefinition();
+        registry.registerBeanDefinition("car",carBeanDefinition);
+    }
+
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) 
+        throws BeansException {
+        System.out.println("postProcessBeanFactory++++");
+        System.out.println("beanFactory:"+beanFactory.getBeanDefinitionCount());
+    }
+}
+```
+
+#### 实现原理
+
+1. ioc创建对象
+2. refresh()-》invokeBeanFactoryPostProcessors(beanFactory);
+3. 从容器中获取到所有的BeanDefinitionRegistryPostProcessor组件。
+   1. 依次触发所有的postProcessBeanDefinitionRegistry()方法
+   2. 再来触发postProcessBeanFactory()方法BeanFactoryPostProcessor；
+4. 再来从容器中找到BeanFactoryPostProcessor组件；然后依次触发postProcessBeanFactory()方法
+
+### Spring监听器—ApplicationListener
+
+监听容器中发布的事件，事件驱动模型开发，监听 ApplicationEvent 及其下面的子事件
+
+```java
+@FunctionalInterface
+public interface ApplicationListener<E extends ApplicationEvent> extends EventListener {
+   void onApplicationEvent(E event);
+}
+```
+
+```java
+/** 
+ * 	 步骤：
+ * 		1）、写一个监听器（ApplicationListener实现类）来监听某个事件（ApplicationEvent及其子类）
+ * 			@EventListener;
+ * 			原理：使用EventListenerMethodProcessor处理器来解析方法上的@EventListener；
+ * 
+ * 		2）、把监听器加入到容器；
+ * 		3）、只要容器中有相关事件的发布，我们就能监听到这个事件；
+ * 				ContextRefreshedEvent：容器刷新完成（所有bean都完全创建）会发布这个事件；
+ * 				ContextClosedEvent：关闭容器会发布这个事件；
+ * 		4）、发布一个事件：
+ * 				applicationContext.publishEvent()；
+ * 	
+ *  原理：
+ *  	ContextRefreshedEvent、IOCTest_Ext$1[source=我发布的时间]、ContextClosedEvent；
+ *  1）、ContextRefreshedEvent事件：
+ *  	1）、容器创建对象：refresh()；
+ *  	2）、finishRefresh();容器刷新完成会发布ContextRefreshedEvent事件
+ *  2）、自己发布事件；
+ *  3）、容器关闭会发布ContextClosedEvent；
+ *  
+ *  【事件发布流程】：
+ *  	3）、publishEvent(new ContextRefreshedEvent(this));
+ *  			1）、获取事件的多播器（派发器）：getApplicationEventMulticaster()
+ *  			2）、multicastEvent派发事件：
+ *  			3）、获取到所有的ApplicationListener；
+ *  				for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+ *  				1）、如果有Executor，可以支持使用Executor进行异步派发；
+ *  					Executor executor = getTaskExecutor();
+ *  				2）、否则，同步的方式直接执行listener方法；invokeListener(listener, event);
+ *  				 拿到listener回调onApplicationEvent方法；
+ *  
+ *  【事件多播器（派发器）】
+ *  	1）、容器创建对象：refresh();
+ *  	2）、initApplicationEventMulticaster();初始化ApplicationEventMulticaster；
+ *  		1）、先去容器中找有没有id=“applicationEventMulticaster”的组件；
+ *  		2）、如果没有this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+ *  			并且加入到容器中，我们就可以在其他组件要派发事件，自动注入这个applicationEventMulticaster；
+ *  
+ *  【容器中有哪些监听器】
+ *  	1）、容器创建对象：refresh();
+ *  	2）、registerListeners();
+ *  		从容器中拿到所有的监听器，把他们注册到applicationEventMulticaster中；
+ *  		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
+ *  		//将listener注册到ApplicationEventMulticaster中
+ *  		getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
+ *  		
+ *   SmartInitializingSingleton 原理：->afterSingletonsInstantiated();
+ *   		1）、ioc容器创建对象并refresh()；
+ *   		2）、finishBeanFactoryInitialization(beanFactory);初始化剩下的单实例bean；
+ *   			1）、先创建所有的单实例bean；getBean();
+ *   			2）、获取所有创建好的单实例bean，判断是否是SmartInitializingSingleton类型的；
+ *   				如果是就调用afterSingletonsInstantiated();
+ * 		
+ * 
+ *
+ */
+```
+
+## Spring容器的初始化-refresh
+
+### 刷新前的预处理-prepareRefresh();
+
++ initPropertySources()
+
+  初始化设置一些属性，子类自定义个性化的属性设置方法（继承AnnotationConfigApplicationContext，覆盖initPropertySources方法）；
+
+  ```java
+  import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+  
+  public class MyAnnotationConfigApplicationContext extends 
+      AnnotationConfigApplicationContext {
+  
+      public MyAnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
+          super(annotatedClasses);
+      }
+      @Override
+      protected void initPropertySources() {
+          System.out.println("===================================");
+          super.initPropertySources();
+          System.out.println("===================================");
+      }
+  }
+  ```
+
++ getEnvironment().validateRequiredProperties()
+
+  完成属性校验等操作
+
++ earlyApplicationEvents = new LinkedHashSet<>();
+
+  创建一个LinkedHashSet，用于保存容器中早期的一些事件
+
+### 获取BeanFactory：obtainFreshBeanFactory
+
++ refreshBeanFactory，刷新【创建】BeanFactory
+
+  BeanFactory的创建是在实例化GenericApplicationContext时，创建了一个DefaultListableBeanFactory，在refreshBeanFactory方法中主要设置了BeanFactory的序列号ID。
+
+  ```java
+  public GenericApplicationContext() {
+     this.beanFactory = new DefaultListableBeanFactory();
+  }
+  ```
+
++ getBeanFactory，返回刚才GenericApplicationContext创建的BeanFactory对象；
++ 将创建的BeanFactory【DefaultListableBeanFactory】返回
+
+### BeanFactory的预准备工作-prepareBeanFactory
+
+该方法给BeanFactory做一些预备的工作，对BeanFactory进行一些设置
+
++ 设置BeanFactory的类加载器，支持表达式解析器...
+
++ 添加部分BeanPostProcessor(ApplicationContextAwareProcessor)
+
++ 设置自动装配需要忽略的接口
+
+  EnvironmentAware、EmbeddedValueResolverAware、ResourceLoaderAware、ApplicationEventPublisherAware、MessageSourceAware、ApplicationContextAware
+
++ 设置自动装配到Spring容器中的组件
+
+  BeanFactory、ResourceLoader、ApplicationEventPublisher、ApplicationContext；以上组件我们能直接在其它组件中注入使用
+
++ 添加BeanPostProcessor【ApplicationListenerDetector】
+
+  ApplicationListenerDetector的作用是检测那些实现了ApplicationListener的bean，在这些Bean初始化后将他们添加到应用上下文的事件多播器上，在这些bean销毁之前，将他们从应用上下的事件多播器上移除。
+
++ 添加编译时的AspectJ支持
+
++ 给BeanFactory中注册一些能用的组件；
+  environment【ConfigurableEnvironment】、systemProperties【Map<String, Object>】、systemEnvironment【Map<String, Object>】
+
+### BeanFactory的后置处理
+
+子类通过重写这个方法来在BeanFactory创建并预准备完成以后做进一步的设置，具体的实现方式类使于initPropertySources方法。
+
+------------------------
+
+​												以上是BeanFactory的创建及预准备工作
+
+--------
+
+### invokeBeanFactoryPostProcessors(beanFactory)
+
+在BeanFactory标准初始化之后，执行BeanFactory的后置处理器，执行过程中涉及两个接口BeanFactoryPostProcessor、BeanDefinitionRegistryPostProcessor，即两类BeanFactory的后置处理器。
+
+#### 执行BeanDefinitionRegistryPostProcessor
+
++ 获取所有的BeanDefinitionRegistryPostProcessor
++ 先执行实现了优先级接口（PriorityOrdered）的BeanDefinitionRegistryPostProcessor
++ 然后执行实现了顺序接口（Ordered）的BeanDefinitionRegistryPostProcessor
++ 最后执行没有实现任何优先级或者是顺序接口的BeanDefinitionRegistryPostProcessors
+
+#### 执行BeanFactoryPostProcessor
+
++ 获取所有的BeanFactoryPostProcessor
++ 先执行实现了优先级接口（PriorityOrdered）的BeanFactoryPostProcessor
++ 然后执行实现了顺序接口（Ordered）的BeanFactoryPostProcessor
++ 最后执行没有实现任何优先级或者是顺序接口的BeanFactoryPostProcessor
+
+### 注册Bean的后置处理器
+
+```java
+registerBeanPostProcessors(beanFactory);
+```
+
+不同接口类型的BeanPostProcessor；在Bean创建前后的执行时机是不一样的
+		BeanPostProcessor、
+		DestructionAwareBeanPostProcessor、
+		InstantiationAwareBeanPostProcessor、
+		SmartInstantiationAwareBeanPostProcessor、
+		MergedBeanDefinitionPostProcessor【internalPostProcessors】
+
++ 获取所有的 BeanPostProcessor;后置处理器都默认可以通过PriorityOrdered、Ordered接口来执行优先级
+
++ 先注册PriorityOrdered优先级接口的BeanPostProcessor；把每一个BeanPostProcessor；添加到BeanFactory中
+
+  ```java
+  beanFactory.addBeanPostProcessor(postProcessor);
+  ```
+
++ 再注册实现了Ordered接口的BeanPostProcessor
++ 最后注册没有实现任何优先级接口的BeanPostProcessor
++ 最终注册MergedBeanDefinitionPostProcessor
++ 注册一个ApplicationListenerDetector；在Bean创建完成后检查是否是ApplicationListener，如果是，则将其添加到上下文的多播器上
+  applicationContext.addApplicationListener((ApplicationListener<?>) bean);
+
+### 初始化MessageSource组件
+
+```java
+initMessageSource();
+```
+
+做国际化功能，消息绑定，消息解析等
+
++ 获取BeanFactory
+
++ 看容器中是否有id为messageSource的，类型是MessageSource的组件
+
+  如果有赋值给messageSource，如果没有就创建一个DelegatingMessageSource；MessageSource：取出国际化配置文件中的某个key的值；能按照区域信息获取；
+
++ 把创建好的MessageSource注册在容器中
+
+  ```java
+  beanFactory.registerSingleton(MESSAGE_SOURCE_BEAN_NAME, this.messageSource);	
+  MessageSource.getMessage(String code, Object[] args, String defaultMessage, Locale locale);
+  ```
+
+  以后获取国际化配置文件的值的时候，可以自动注入MessageSource；
+
+### 初始化事件派发器-initApplicationEventMulticaster
+
++ 获取BeanFactory
++ 从BeanFactory中获取applicationEventMulticaster的ApplicationEventMulticaster
++ 如果上一步没有配置；创建一个SimpleApplicationEventMulticaster
++ 将创建的ApplicationEventMulticaster添加到BeanFactory中，以后其他组件直接自动注入
+
+### onRefresh();留给子容器（子类）
+
+子类重写这个方法，在容器刷新的时候可以自定义逻辑；具体的实现方法类使于initPropertySources方法
+
+### 监听器注册-registerListeners
+
++ 从容器中拿到所有的ApplicationListener
+
++ 将每个监听器添加到事件派发器中
+
+  ```java
+  getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
+  ```
+
++ 派发之前步骤产生的事件
+
+### 初始化所有剩下的单实例bean
+
+```java
+finishBeanFactoryInitialization(beanFactory);
+...                         ...
+beanFactory.preInstantiateSingletons();
+```
+
++ 获取容器中的所有Bean，依次进行初始化和创建对象
+
++ 获取Bean的定义信息；RootBeanDefinition
+
++ Bean不是抽象的，是单实例的，是懒加载
+
+  + 判断是否是FactoryBean；是否是实现FactoryBean接口的Bean；
+
+  + 不是工厂Bean,利用getBean(beanName)创建对象
+
+    + getBean(beanName)； ioc.getBean();
+
+    + doGetBean(name, null, null, false);
+
+    + 获取缓存中保存的单实例Bean
+
+      如果能获取到说明这个Bean之前被创建过（所有创建过的单实例Bean都会被缓存起来）,从private final Map<String, Object> singletonObjects = new ConcurrentHashMap<String, Object>(256);获取的.
+
+    + 缓存中获取不到，开始Bean的创建对象流程
+
+    + 标记当前bean已经被创建
+
+    + 获取Bean的定义信息
+
+    + 获取当前Bean依赖的其他Bean;如果有按照getBean()把依赖的Bean先创建出来；
+
+    + 单实例Bean的创建流程
+
+      + createBean(beanName, mbd, args);
+
+      + 执行Bean的后置处理器
+
+        ```java
+        Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
+        ```
+
+        让BeanPostProcessor先拦截返回代理对象；【InstantiationAwareBeanPostProcessor】：提前执行；先触发：postProcessBeforeInstantiation()；如果有返回值：触发postProcessAfterInitialization()；
+
+      + 如果前面的InstantiationAwareBeanPostProcessor没有返回代理对象，就需要创建
+
+        ```java
+        Object beanInstance = doCreateBean(beanName, mbdToUse, args);
+        ```
+
+      + 创建Bean
+
+        ![](./res/createBean.png)
+
+      + 将创建的Bean添加到缓存中singletonObjects
+
+    ioc容器就是这些Map；很多的Map里面保存了单实例Bean，环境信息。。。。；
+    所有Bean都利用getBean创建完成以后；检查所有的Bean是否是SmartInitializingSingleton接口的；如果是；就执行afterSingletonsInstantiated()；
+
+### 完成BeanFactory的初始化创建工作-finishRefresh
+
++ initLifecycleProcessor();初始化和生命周期有关的后置处理器；
+
+  LifecycleProcessor默认从容器中找是否有lifecycleProcessor的组件【LifecycleProcessor】；如果没有new DefaultLifecycleProcessor();加入到容器；写一个LifecycleProcessor的实现类，可以在BeanFactory
+  		void onRefresh();
+  		void onClose();
+
++ getLifecycleProcessor().onRefresh();
+  	拿到前面定义的生命周期处理器（BeanFactory）；回调onRefresh()；
+
++ publishEvent(new ContextRefreshedEvent(this));发布容器刷新完成事件；
+
++ liveBeansView.registerApplicationContext(this);		
+
+## 循环依赖
+
+Spring中单列默认支持循环依赖
