@@ -9,7 +9,10 @@ import org.springframework.context.annotation.Configuration;
 public class CircleMainConfig {
     public static void main(String[] args) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(CircleMainConfig.class);
-        IndexService indexService = context.getBean(IndexService.class);
-        indexService.print();
+        for (int i = 0; i < 5; i++) {
+            UserService indexService = context.getBean(UserService.class);
+            indexService.print();
+        }
+
     }
 }

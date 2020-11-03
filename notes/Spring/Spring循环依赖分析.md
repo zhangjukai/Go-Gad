@@ -98,7 +98,7 @@ private boolean allowCircularReferences = true;
 
 ### Spring的三级缓存
 
-+ 一级缓存-singletonObjects
++ 一级缓存-singletonObjects（单列池）
 
   ```java
   /** Cache of singleton objects: bean name --> bean instance */
@@ -127,7 +127,7 @@ private boolean allowCircularReferences = true;
 
 以上三个属性都是位于`DefaultSingletonBeanRegistry`类中。
 
-### 缓存正在创建的Bean的name
+### 判断是个bean是否正在创建中
 
 在解决循环依赖的过程中有个很重要的点就是如何判断一个bean是否正在创建中，
 
@@ -146,3 +146,147 @@ private final Set<String> singletonsCurrentlyInCreation =
 ```
 
 明白了以上三点后，有助于对Spring处理循环依赖流程的理解。
+
+## 循环依赖下bean(单列)的创建流程
+
+以下只对核心步骤进行说明：
+
+从容器启动到核心方法的调用链如下：refresh()->finishBeanFactoryInitialization(beanFactory)->beanFactory.preInstantiateSingletons()->getBean(beanName)->doGetBean(name, null, null, false);
+
+以上面的IndexService和UserService为列，首先创建IndexService，从doGetBean开始整个bean的核心创建流程如下：
+
+1. 通过getSingleton(beanName)从容器中获取，如果有值，表示已经创建过了，直接返回，getSingleton方法都是围绕着三级缓存来处理的，核心代码如：
+
+   ```java
+   @Nullable
+   protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+       // 从一级缓存中获取
+      Object singletonObject = this.singletonObjects.get(beanName);
+       // bean 还没有创建并且正在创建中
+      if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+         synchronized (this.singletonObjects) {
+             // 从三级缓存中获取
+            singletonObject = this.earlySingletonObjects.get(beanName);
+            if (singletonObject == null && allowEarlyReference) { //三级缓存中没有
+                // 从二级缓存中获取singletonFactory
+               ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+               if (singletonFactory != null) {
+                   // 通过singletonFactory创建对象
+                  singletonObject = singletonFactory.getObject();
+                   // 创建的对象放入三级缓存中
+                  this.earlySingletonObjects.put(beanName, singletonObject);
+                   // 删除二级缓存中的singletonFactory
+                  this.singletonFactories.remove(beanName);
+               }
+            }
+         }
+      }
+      return singletonObject;
+   }
+   ```
+
+   这一步在`if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) `这个if判读就会返回null，因为Bean没有被创建过，而且也还没有开始创建。
+
+2. 将正在创建的bean的name存入singletonsCurrentlyCreation中
+
+   第二次调用getSingleton的另外一个方法，在该方法中完了了一个关键点，将正在创建的bean的name存入singletonsCurrentlyCreation中。
+
+   ```java
+   getSingleton(String beanName, ObjectFactory<?> singletonFactory) 
+   ```
+
+   在这个方法中，调用了beforeSingletonCreation(beanName)，这个方法在singletonsCurrentlyCreation这个set集合中加入了beanName，用于标识这个对象正在被创建中。
+
+   ```java
+   protected void beforeSingletonCreation(String beanName) {
+       if (!this.inCreationCheckExclusions.contains(beanName) && 
+           !this.singletonsCurrentlyInCreation.add(beanName)) {
+           throw new BeanCurrentlyInCreationException(beanName);
+       }
+   }
+   ```
+
+3. createBean(beanName, mbd, args)
+
+   1. 添加SingletonFactory到二级缓存中
+
+   ```java
+   addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
+   ```
+
+   2. 属性赋值
+
+   ```java
+   populateBean(beanName, mbd, instanceWrapper);
+   ```
+
+   在这个方法中会对Bean中一些属性进行初始化，
+
+   ```java
+   for (BeanPostProcessor bp : getBeanPostProcessors()) {
+      if (bp instanceof InstantiationAwareBeanPostProcessor) {
+        InstantiationAwareBeanPostProcessor ibp=(InstantiationAwareBeanPostProcessor) bp;
+        pvs=ibp.postProcessPropertyValues(pvs,filteredPds,bw.getWrappedInstance(), 
+                                          beanName);
+         if (pvs == null) {
+            return;
+         }
+      }
+   }
+   ```
+
+   以上代码是遍历所有的BeanPostProcessor，有一个是AutowiredAnnotationBeanPostProcessor，专门用于给通过@Autowired注入的属性赋值操作的，IndexService中通过@Autowired注入了UserService，而这个时候UserService还没有创建。
+
+   3. metadata.inject(bean, beanName, pvs);
+
+      在进行属性注入时，遇到没有创建的Bean时会去创建bean，调用链如下：![](./res/循环依赖赋值调用链.png)
+
+   可以看到，最终是调用到了doGetBean方法，与IndexService的创建流程一样，UserService的创建也会走到populateBean方法进行属性赋值。而UserService中通过@Autowired注入了IndexService，按照上面的流程同样会执行到doGetBean方法。
+
+   **下面就进入到了循环依赖的关键点了**
+
+   这个时候是给UserService中的IndexService赋值，调用到doGetBean方法，同样会去执行getSingleton(beanName)方法，而此时逻辑就会有所不同，再看一下源码：
+
+   ```java
+   @Nullable
+   protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+       // 从一级缓存中获取
+      Object singletonObject = this.singletonObjects.get(beanName);
+       // bean 还没有创建并且正在创建中
+      if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+         synchronized (this.singletonObjects) {
+             // 从三级缓存中获取
+            singletonObject = this.earlySingletonObjects.get(beanName);
+            if (singletonObject == null && allowEarlyReference) { //三级缓存中没有
+                // 从二级缓存中获取singletonFactory
+               ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+               if (singletonFactory != null) {
+                   // 通过singletonFactory创建对象
+                  singletonObject = singletonFactory.getObject();
+                   // 创建的对象放入三级缓存中
+                  this.earlySingletonObjects.put(beanName, singletonObject);
+                   // 删除二级缓存中的singletonFactory
+                  this.singletonFactories.remove(beanName);
+               }
+            }
+         }
+      }
+      return singletonObject;
+   }
+   ```
+
+    此时通过this.singletonObjects.get(beanName)同样获取不到值，因为IndexService这个时候还没有创建完，但是这个时候isSingletonCurrentlyInCreation(beanName)返回的是true，因为IndexService已经在创建中了，不过这个时候三级缓存中也没有IndexService，即this.earlySingletonObjects.get(beanName)=null，这个时候就会从二级缓存中获取到singletonFactory，通过 singletonFactory.getObject()就能够获取到相应的对象了。
+
+   其他的源码中有相应的备注。
+
+4. 将bean添加到一级缓存中
+
+   当`getSingleton(String beanName, ObjectFactory<?> singletonFactory)`方法执行完后，会将创建并且初始化完成后的bean添加到singletonObjects中，
+
+   ![](./res/addSingletonObjects.png)
+
+这样UserService就创建完成了，然后依次返回会把IndexService也创建完成。
+
+## 为什么需要三级缓存
+
+使用三级缓存是为了提高效率，避免多次通过singletonFactory去创建对象

@@ -1,5 +1,57 @@
 整体上梳理Spring的部分内容，具体的后面看情况分专题整体。
 
+## 基础知识
+
+IOC，是面向对象编程中的一种设计原则，控制反转是目的，依赖注入是手段
+
+### Spring Bean元数据的配置方式
+
+```java
+schemal-based-------xml
+annotation-based-----annotation
+java-based----java Configuration
+```
+
+### 自动装配
+
+#### 优点
+
++ 能减少参数配置
++ 对象修改时能自动更改，不用去修改配置
+
+#### 缺点
+
++ 自动装配不支持基础属性、Strings、Class、基础属性的数组，Spring设计如此
++ 自动装配没有显示关联精准
++ 自动装配可能无法用于从Spring容器生成文档的工具
++ 通过set方法或者构造器参数自动装配，可能匹配到多个bean
+
+#### 自动装配的方法
+
+```java
+no
+byName
+byType
+constructor
+自动装配的方式参考文档：
+https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#beans-factory-autowire
+```
+
+### SpringBean的作用域
+
+```java
+singleton/prototype/request/session/application/websocket
+```
+
+#### Singleton Beans with Prototype-bean Dependencies 
+
+意思是在Singleton 当中引用了一个Prototype的bean的时候引发的问题：Prototype模式会失效，具体解决方案参考 **Method Injection：**
+
+https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-factory-method-injection
+
++ 实现 ApplicationContextAware
++ 使用@Lookup
+
 ## Spring组件注册常用注解
 
 ### @Configuration
