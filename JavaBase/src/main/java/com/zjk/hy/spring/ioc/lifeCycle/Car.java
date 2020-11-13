@@ -1,11 +1,13 @@
 package com.zjk.hy.spring.ioc.lifeCycle;
 
+import com.zjk.hy.spring.ioc.anno.MyTable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+@MyTable(name="aaa")
 public class Car implements InitializingBean, DisposableBean {
     private String name;
 
@@ -13,6 +15,7 @@ public class Car implements InitializingBean, DisposableBean {
     public void afterPropertiesSet() throws Exception {
         System.out.println("car初始化完成");
     }
+
     public String getName() {
         return name;
     }

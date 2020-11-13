@@ -12,16 +12,15 @@ public class UserService  {
 
     public void print(){
         System.out.println("UserService-aaaaaaaa");
-        System.out.println("indexService:"+createIndexService().hashCode());
     }
 
     public UserService() {
         System.out.println("UserService------------------start");
     }
 
-    @Lookup(value = "indexService")
+    /*@Lookup(value = "indexService")
     protected IndexService createIndexService(){
         return null;
-    }
+    }*/
 
 }

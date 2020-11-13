@@ -52,6 +52,18 @@ https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#be
 + 实现 ApplicationContextAware
 + 使用@Lookup
 
+#### 自定义作用域
+
+您可以定义自己的作用域，甚至可以重新定义现有的作用域，尽管后者被认为是不好的做法，并且您不能重写内置的singleton和prototype作用域。
+
+### 生命周期回调
+
+> As of Spring 2.5, you have three options for controlling bean lifecycle behavior:
+>
+> - The [`InitializingBean`](https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-factory-lifecycle-initializingbean) and [`DisposableBean`](https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-factory-lifecycle-disposablebean) callback interfaces
+> - Custom `init()` and `destroy()` methods
+> - The [`@PostConstruct` and `@PreDestroy` annotations](https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-postconstruct-and-predestroy-annotations). You can combine these mechanisms to control a given bean.
+
 ## Spring组件注册常用注解
 
 ### @Configuration
@@ -153,10 +165,35 @@ public enum Autowire {
 那么在其他对象中可以通过@Autowired注解，注入该对象，代码如下：
 
 ```java
-// 需要提供get、set方法
 @Autowired
 private Person person;
 ```
+
+### @Required
+
+@Required注释适用于bean属性setter方法，该注解表示必须配置该注解标示的bean
+
+### @Primary
+
+如果出现通过类型装载时，出现多个匹配对象，可以通过该注解标注那个对象优先
+
+### @Qualifier
+
+配合@Autowired使用，在存在同一类型多个对象时，通过该注解指定通过bean name装配的bean name名称，
+
+@Autowired默认是通过类型装配的（byType）
+
+### @Resource
+
+JSR-250 提供的注解，功能与@Autowired相似，@Resource默认通过bean name自动装载
+
+### @Value
+
+设置属性的值
+
+### @DependsOn
+
+如果一个bean（A）依赖另一个bean（B），通过@DependsOn注解设置过后，容器会先创建B这个bean。
 
 ### @ComponentScan
 
@@ -289,11 +326,206 @@ public interface Condition {
 
 ### @Import
 
-导入组件
+通过@Import总共有三种方式向Spring容器中注册组件
+
+**1. 快速导入组件**
+
+eg:
+
+```java
+@Import({IndexService.class})
+```
+
+通过以上方式，在SpringIOC中是以其全类名作为id,com.zjk.hy.spring.circularDep.IndexService -> {IndexService@1855} 
+
+**2. 实现ImportSelector接口**
+
+eg：
+
+```java
+import org.springframework.context.annotation.ImportSelector;
+import org.springframework.core.type.AnnotationMetadata;
+
+public class MyImportSelector implements ImportSelector {
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        return new String[]{"com.zjk.hy.spring.circularDep.UserService"};
+    }
+}
+```
+
+AnnotationMetadata：表示当前被@Import注解给标注的所有注解信息
+
+返回值： 就是我们实际上要导入到容器中的组件全类名，返回结果为数组，可以设置多个，不能返回null
+
+具体使用：
+
+```java
+@Import({IndexService.class, MyImportSelector.class})
+```
+
+**3. 实现ImportBeanDefinitionRegistrar接口**
+
+eg：
+
+```java
+public class MyImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, 
+                                        BeanDefinitionRegistry registry) {
+        registry.registerBeanDefinition("MIBDR-baseService",new 
+                                        RootBeanDefinition(TestBaseServiceImpl.class));
+    }
+}
+```
+
+AnnotationMetadata：annotationMetadata 和之前的ImportSelector参数一样都是表示当前被@Import注解给标注的所有注解信息
+
+BeanDefinitionRegistry：BeanDefinition的注册器，调用registerBeanDefinition方法可以向容器中注册一个BeanDefinition
+
+具体使用：
+
+```java
+@Import({MyImportSelector.class, MyImportBeanDefinitionRegistrar.class})
+```
+
+这种方式与ImportSelector不同的是，ImportBeanDefinitionRegistrar能够指定bean的名字(id)
+
+**通过ImportBeanDefinitionRegistrar如何注入一个代理对象**
+
+```java
+import com.zjk.hy.spring.circularDep.TestBaseService;
+import org.springframework.beans.factory.support.*;
+import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.type.AnnotationMetadata;
+
+public class MyImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        // 注入一个代理对象
+        BeanDefinitionBuilder builder = 
+            BeanDefinitionBuilder.genericBeanDefinition(TestBaseService.class);
+        GenericBeanDefinition beanDefinition = (GenericBeanDefinition) 
+            builder.getBeanDefinition();
+        System.out.println(beanDefinition.getBeanClassName());
+        beanDefinition.getConstructorArgumentValues().
+            addGenericArgumentValue(beanDefinition.getBeanClassName());
+        beanDefinition.setBeanClass(MyFactoryBean.class);
+        registry.registerBeanDefinition("proxy-baseService",beanDefinition);
+
+    }
+}
+
+```
+
+```java
+import org.springframework.beans.factory.FactoryBean;
+
+import java.lang.reflect.Proxy;
+
+public class MyFactoryBean implements FactoryBean {
+    private Class clazz;
+    public MyFactoryBean(Class clazz) {
+        this.clazz = clazz;
+    }
+
+    @Override
+    public Object getObject() throws Exception {
+        Class[] classes = {clazz};
+        Object proxyInstance = Proxy.newProxyInstance(this.getClass().getClassLoader(), 						classes, new MyInvocationHandler());
+        return proxyInstance;
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return clazz;
+    }
+}
+
+```
+
+慢慢发现Spring的一些操作真的有点骚，感觉@MapperScan的实现原理和上面的实现逻辑有点相似，当然还没开始mybatis的学习，所以具体原理还不是特别清楚
 
 ### @Lookup
 
 这是一个作用在方法上的注解，被其标注的方法会被重写，然后根据其返回值的类型，容器调用BeanFactory的getBean()方法来返回一个bean。
+
+### @Profile
+
+允许您在一个或多个指定的概要文件处于活动状态时指示组件有资格注册。其实就是进行环境的配置，如dev/test/pro等
+
+**激活方式：**
+
+```java
+AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+ctx.getEnvironment().setActiveProfiles("development");
+ctx.register(SomeConfig.class, StandaloneDataConfig.class, JndiDataConfig.class);
+ctx.refresh();
+```
+
+或者通过配置文件配置：
+
+```java
+spring.profiles.active=test/pro
+```
+
+### @Conditional
+
+@Conditional是Spring4新提供的注解，它的作用是根据某个条件创建特定的Bean，通过实现Condition接口，并重写matches接口来构造判断条件。总的来说，就是根据特定条件来控制Bean的创建行为，这样我们可以利用这个特性进行一些自动的配置。
+
+```java
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+
+public class WindowsCondition implements Condition {
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        return context.getEnvironment().getProperty("os.name").contains("Windows");
+    }
+}
+```
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class Config {
+
+    @Bean
+    @Conditional(WindowsCondition.class)
+    public ListService window() {
+        return new WindowsService();
+    }
+}
+```
+
+
+
+## 自定义注解
+
+```java
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MyTable {
+    String name() default "";
+}
+```
+
+@Target：标注注解使用的位置
+
+@Retention：标注注解存在的时期
+
+具体使用如下：
+
+```java
+Class<? extends Dog> dogClass = Dog.class;
+if (dogClass.isAnnotationPresent(MyTable.class)){
+    MyTable myTable = dogClass.getAnnotation(MyTable.class);
+    System.out.println( myTable.name());
+}
+```
 
 ## Spring Bean生命周期涉及内容
 
@@ -331,6 +563,8 @@ public interface Condition {
    }
    ```
 
+   **不建议使用这种方式，因为会和Spring进行耦合** 
+
 4. bean的后置处理器-BeanPostProcessor接口
 
    ```java
@@ -366,7 +600,7 @@ public interface Condition {
 
 + 通过@Bean的destroyMethod参数指定一个方法，该方法会在bean销毁时执行
 
-+ 通过让bean实现DisposableBean接口
++ 通过让bean实现DisposableBean接口-不建议使用，会与Spring进行耦合
 
   ```java
   public interface DisposableBean {
@@ -544,19 +778,168 @@ Spring框架的一个优点是Spring中的bean不会感知到Spring容器的存�
 
 AOP：面向切面编程，指在程序运行期间动态的将某段代码切入到指定方法的指定位置，进行运行的编程方式。底层采用**动态代理**实现。
 
+### AOP应用场景
+
++ 日志记录
++ 权限管理
++ 效率检查
++ 事务管理
++ exception
+
+### 底层实现原理
+
+JDK动态代理和CGLIB动态代理
+
+### Spring AOP和AspectJ的关系
+
+springAop、AspectJ都是Aop的实现，SpringAop有自己的语法，但是语法复杂，所以SpringAop借助了AspectJ的注解，但是底层实现还是自己的。
+
+如果目标对象没有交给Spring容器管理，则需要使用AspectJ。
+
+field get或set连接点等等，那么还需要使用AspectJ。
+
+**spring AOP提供两种编程风格：**
+
+@AspectJ support         ------------>利用aspectj的注解
+
+Schema-based AOP support ----------->xml aop:config 命名空间
+
+### AOP中的概念
+
++ aspect：切面，aspectj->类，需要交给Spring容器管理
+
++ Joinpoint：连接点，目标对象中的方法，简单地说就是需要增强的地方，对什么方法进行增强
+
++ pointcut：切点，官方翻译如下：
+
+  > 匹配连接点的谓词。通知与切入点表达式相关联，并在切入点匹配的任何连接点上运行(例如，具有特定名称的方法的执行)。由切入点表达式匹配的连接点的概念是AOP的核心，Spring在默认情况下使用AspectJ切入点表达式
+
++ Advice：通知
+  + 前置通知（@Before），目标方法执行前调用
+  + 后置通知（@After），目标方法执行后调用，无论正常结束还是异常结束
+  + 返回通知（@AfterReturning），目标方法返回之后通知
+  + 异常通知（@AfterThrowing），目标方法出现异常时调用
+  + 环绕通知（@Around），动态代理，手动推动目标方法执行（joinPoint.procced()），**可以重载传入的参数** 
++ Weaving：织入，把代理逻辑加入到目标对象上的过程
++ Target object：目标对象，需要被增强的对象
++ AOP proxy：代理对象
+
+### 各种连接点joinPoint的意义
+
++ execution：匹配方法执行连接点
++ within：将匹配限制为特定类型中的连接点
++  args：参数
++  target：目标对象
++  this：代理对象
+
+#### execution
+
+用于匹配方法执行 join points连接点，最小粒度方法，在aop中主要使用，使用表达式如下：
+
+execution(modifiers-pattern? ret-type-pattern declaring-type-pattern?name-pattern(param-pattern) throws-pattern?)这里问号表示当前项可以有也可以没有，其中各项的语义如下：
+
++ modifiers-pattern：方法的可见性，如public，protected；
++ ret-type-pattern：方法的返回值类型，如int，void等；
++ declaring-type-pattern：方法所在类的全路径名，如com.spring.Aspect；
++ name-pattern：方法名类型，如buisinessService()；
++ param-pattern：方法的参数类型，如java.lang.String；
++ throws-pattern：方法抛出的异常类型，如java.lang.Exception；
+
+eg：
+
+```java
+@Pointcut("execution(* com.chenss.dao.*.*(..))")//匹配com.chenss.dao包下的任意接口和类的任意方法
+@Pointcut("execution(public * com.chenss.dao.*.*(..))")//匹配com.chenss.dao包下的任意接口和类的public方法
+@Pointcut("execution(public * com.chenss.dao.*.*())")//匹配com.chenss.dao包下的任意接口和类的public 无方法参数的方法
+@Pointcut("execution(* com.chenss.dao.*.*(java.lang.String, ..))")//匹配com.chenss.dao包下的任意接口和类的第一个参数为String类型的方法
+@Pointcut("execution(* com.chenss.dao.*.*(java.lang.String))")//匹配com.chenss.dao包下的任意接口和类的只有一个参数，且参数为String类型的方法
+@Pointcut("execution(* com.chenss.dao.*.*(java.lang.String))")//匹配com.chenss.dao包下的任意接口和类的只有一个参数，且参数为String类型的方法
+@Pointcut("execution(public * *(..))")//匹配任意的public方法
+@Pointcut("execution(* te*(..))")//匹配任意的以te开头的方法
+@Pointcut("execution(* com.chenss.dao.IndexDao.*(..))")//匹配com.chenss.dao.IndexDao接口中任意的方法
+@Pointcut("execution(* com.chenss.dao..*.*(..))")//匹配com.chenss.dao包及其子包中任意的方法
+```
+
+由于Spring切面粒度最小是达到方法级别，而execution表达式可以用于明确指定方法返回类型，类名，方法名和参数名等与方法相关的信息，并且在Spring中，大部分需要使用AOP的业务场景也只需要达到方法级别即可，因而execution表达式的使用是最为广泛的。
+
+#### within
+
+表达式的最小粒度为类，within与execution相比，粒度更大，仅能实现到包和接口、类级别。而execution可以精确到方法的返回值，参数个数、修饰符、参数类型等。
+
+eg：
+
+```java
+@Pointcut("within(com.chenss.dao.*)")//匹配com.chenss.dao包中的任意方法
+@Pointcut("within(com.chenss.dao..*)")//匹配com.chenss.dao包及其子包中的任意方法
+```
+
+#### args
+
+args表达式的作用是匹配指定参数类型和指定参数数量的方法,与包名和类名无关。args同execution不同的地方在于：args匹配的是运行时传递给方法的参数类型，execution匹配的是方法在声明时指定的方法参数类型。
+
+eg：
+
+```java
+@Pointcut("args(java.io.Serializable)")//匹配运行时传递的参数类型为指定类型的、且参数个数和顺序匹配
+@Pointcut("@args(com.chenss.anno.Chenss)")//接受一个参数，并且传递参数的运行时类型具有@Classified
+```
+
+#### this
+
+JDK代理时，指向接口和代理类proxy，cglib代理时 指向接口和子类(不使用proxy)
+
+#### target  
+
+目标对象，
+
+#### @annotation
+
+```java
+@Pointcut("@annotation(com.chenss.anno.Chenss)")//匹配带有com.chenss.anno.Chenss注解的方法
+```
+
+### 补充知识点
+
+#### @DeclareParents
+
+大概意思好像估计可能是：给需要增强的目标对象增强，官方示例如下：
+
+> ```java
+> @Aspect
+> public class UsageTracking {
+>     @DeclareParents(value="com.xzy.myapp.service.*+", 
+>                     defaultImpl=DefaultUsageTracked.class)
+>     public static UsageTracked mixin;
+>     
+>     @Before("com.xyz.myapp.CommonPointcuts.businessService() && this(usageTracked)")
+>     public void recordUsage(UsageTracked usageTracked) {
+>         usageTracked.incrementUseCount();
+>     }
+> 
+> }
+> ```
+
+此处使用@DeclareParents的意思是：`com.xzy.myapp.service`包下所有的类都实现UsageTracked接口，UsageTracked接口中相关的方法具体的实现由DefaultUsageTracked类提供。简单的说就是`com.xzy.myapp.service`中的类有了DefaultUsageTracked类中提供的UsageTracked接口的实现。表述可能有问题，但是意思应该是这样。
+
+而`public void recordUsage(UsageTracked usageTracked)`方法为什么会出现在这儿，我就真的不理解了
+
+**通过@DeclareParents进行的增强，AOP不能再对添加的方法进行增强**
+
+#### perthis
+
+每个切入点表达式匹配的连接点对应的AOP对象都会创建一个新的切面实例，使用@Aspect("perthis(切入点表达式)")指定切入点表达式；
+
+我是真的没搞懂这个是什么鬼，感觉和原型模式差不多
+
 ### 实现流程
 
 1. 定义业务类
-2. 定义切面类，其中涉及一下几种通知：
-   + 前置通知（@Before），目标方法执行前调用
-   + 后置通知（@After），目标方法执行后调用，无论正常结束还是异常结束
-   + 返回通知（@AfterReturning），目标方法返回之后通知
-   + 异常通知（@AfterThrowing），目标方法出现异常时调用
-   + 环绕通知（@Around），动态代理，手动推动目标方法执行（joinPoint.procced()）
-3. 通过注解给切面类中的方法标注通知类型，（何时执行）
-4. 将业务类和切面类都注入到Spring容器中
-5. 通过@Aspect注解告诉Spring容器当前类是一个切面类
-6. 主配置类上加上@EnableAspectJAutoProxy注解，开启基于注解的aop模式
+2. 定义切面类，
+3. 申明切点（pointcut）
+4. 通过注解给切面类中的方法标注通知类型，（何时执行）
+5. 将业务类和切面类都注入到Spring容器中
+6. 通过@Aspect注解告诉Spring容器当前类是一个切面类
+7. 主配置类上加上@EnableAspectJAutoProxy注解，开启基于注解的aop模式
 
 ### 示例
 
@@ -603,6 +986,19 @@ public class LogAspects {
     public void logError(JoinPoint joinPoint,Exception e){
         String name = joinPoint.getSignature().getName();
         System.out.println(name+"--异常信息为："+e.getMessage());
+    }
+    @Around(value = "pointCut()")
+    public Object around(ProceedingJoinPoint pjp){
+        System.out.println("@Around-before");
+        try {
+            Object[] vars = new Object[]{100,5};
+            Object proceed = pjp.proceed(vars);
+            System.out.println("@Around-after");
+            return proceed;
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return null;
     }
 }
 ```
@@ -1349,3 +1745,7 @@ beanFactory.preInstantiateSingletons();
 ## 循环依赖
 
 Spring中单列默认支持循环依赖
+
+## Spring扩展点
+
+### 后置处理器-BeanPostProcessor

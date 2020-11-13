@@ -6,4 +6,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class TestBaseServiceImpl implements TestBaseService {
 
+    @Override
+    public void print() {
+
+    }
 }

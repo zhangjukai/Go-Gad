@@ -1,10 +1,13 @@
 package com.zjk.hy.spring.ioc;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import com.zjk.hy.spring.ioc.anno.MyTable;
 
-@Configuration
-@ComponentScan("com.zjk.hy.spring.ioc.service")
 public class Demo04 {
-
+    public static void main(String[] args) {
+        Class<? extends Dog> dogClass = Dog.class;
+        if (dogClass.isAnnotationPresent(MyTable.class)){
+            MyTable myTable = dogClass.getAnnotation(MyTable.class);
+            System.out.println( myTable.name());
+        }
+    }
 }
