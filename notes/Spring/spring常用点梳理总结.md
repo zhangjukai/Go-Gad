@@ -64,6 +64,39 @@ https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#be
 > - Custom `init()` and `destroy()` methods
 > - The [`@PostConstruct` and `@PreDestroy` annotations](https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-postconstruct-and-predestroy-annotations). You can combine these mechanisms to control a given bean.
 
+### BeanFactory 与 FactoryBean
+
+#### BeanFactory
+
+访问SpringBean容器的根接口。
+
+#### FactoryBean
+
+FactoryBean接口是可插入Spring IoC容器的实例化逻辑的一个点。如果您有复杂的初始化代码，它最好用Java表达，而不是(可能)冗长的XML，那么您可以创建自己的FactoryBean，在该类中编写复杂的初始化，然后将定制的FactoryBean插入容器中。
+
+eg:
+
+```java
+public class MyFactoryBean implements FactoryBean {
+    private Class clazz;
+    public MyFactoryBean(Class clazz) {
+        this.clazz = clazz;
+    }
+
+    @Override
+    public Object getObject() throws Exception {
+        Class[] classes = {clazz};
+        Object proxyInstance = Proxy.newProxyInstance(this.getClass().getClassLoader(), classes, new MyInvocationHandler());
+        return proxyInstance;
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return clazz;
+    }
+}
+```
+
 ## Spring组件注册常用注解
 
 ### @Configuration
@@ -363,6 +396,10 @@ AnnotationMetadata：表示当前被@Import注解给标注的所有注解信息
 ```java
 @Import({IndexService.class, MyImportSelector.class})
 ```
+
+使用场景：
+
+可以结合注解，实现某些功能的动态开关
 
 **3. 实现ImportBeanDefinitionRegistrar接口**
 
@@ -1749,3 +1786,174 @@ Spring中单列默认支持循环依赖
 ## Spring扩展点
 
 ### 后置处理器-BeanPostProcessor
+
+## Spring CGLIB
+
+## Spring日志体系
+
+### 主流log技术
+
+#### JUL
+
+java自带的一个日志记录的技术,直接使用，不需要引入第三方jar
+
+```java
+ java.util.logging.Logger.getLogger("JUL");
+```
+
+jul中定义的日志级别：
+
++ SEVERE（最高值）
++  WARNING
++  INFO （默认级别）
++ CONFIG
++ FINE
++ FINER
++ FINEST（最低值）
+
+还有两个特殊的级别：
+
+   +  OFF，可用来关闭日志记录
+   +  ALL，启用所有消息的日志记录
+
+**需要强调的一点是：JUL只会输出INFO以及以上级别的日志，具体原因如下：**
+
+```java
+// java.util.logging.Logger;
+Logger(String name, String resourceBundleName, Class<?> caller, LogManager manager, 
+       boolean isSystemLogger) {
+    this.manager = manager;
+    this.isSystemLogger = isSystemLogger;
+    setupResourceInfo(resourceBundleName, caller);
+    this.name = name;
+    levelValue = Level.INFO.intValue();
+}
+```
+
+在初始化Logger时指定了levelValue的值为INFO的intValue（800）
+
+```java
+public boolean isLoggable(Level level) {
+    if (level.intValue() < levelValue || levelValue == offValue) {
+        return false;
+    }
+    return true;
+}
+```
+
+在每次日志输出的时候，会与levelValue进行比较，由此能够知道，只会输出INFO以及以上级别的日志
+
+#### log4j
+
+#### log4j 2
+
+#### jcl
+
+jakartaCommonsLoggingImpl
+
+```java
+<dependency>
+    <groupId>commons-logging</groupId>
+    <artifactId>commons-logging</artifactId>
+    <version>1.1.1</version>
+</dependency>
+```
+
+jcl他不直接记录日志,他是通过第三方记录日志(jul)
+
+如果使用jcl来记录日志,在没有log4j的依赖情况下,是用jul
+
+如果有了log4j则使用log4j
+
+#### slf4j
+
+slf4j他也不记录日志,通过绑定器绑定一个具体的日志记录来完成日志记录
+
+#### logback
+
+logback是java的日志开源组件，是log4j创始人写的，性能比log4j要好，目前主要分为3个模块
+
+1. logback-core:核心代码模块
+2. logback-classic:log4j的一个改良版本，同时实现了`slf4j`的接口，这样你如果之后要切换其他日志组件也是一件很容易的事
+3. logback-access:访问模块与Servlet容器集成提供通过Http来访问日志的功能
+
+```java
+<!--这个依赖直接包含了 logback-core 以及 slf4j-api的依赖-->
+<dependency>
+     <groupId>ch.qos.logback</groupId>
+     <artifactId>logback-classic</artifactId>
+     <version>1.2.3</version>
+</dependency>
+```
+
+#### 总结
+
+![](./res/spring-logs.png)
+
+### Spring日志
+
+#### Spring4日志
+
+spring4当中依赖的是原生的jcl
+
+#### Spring5日志
+
+spring5使用的spring-jcl(spring改了jcl的代码)来记录日志的,但是jcl不能直接记录日志,需要集成其他的日志框架
+
+AbstractApplicationContext：
+
+```java
+protected final Log logger = LogFactory.getLog(getClass());
+```
+
+```java
+public static Log getLog(String name) {
+   switch (logApi) {
+      case LOG4J:
+         return Log4jDelegate.createLog(name);
+      case SLF4J_LAL:
+         return Slf4jDelegate.createLocationAwareLog(name);
+      case SLF4J:
+         return Slf4jDelegate.createLog(name);
+      default:
+         // Defensively use lazy-initializing delegate class here as well since the
+         // java.logging module is not present by default on JDK 9. We are requiring
+         // its presence if neither Log4j nor SLF4J is available; however, in the
+         // case of Log4j or SLF4J, we are trying to prevent early initialization
+         // of the JavaUtilLog adapter - e.g. by a JVM in debug mode - when eagerly
+         // trying to parse the bytecode for all the cases of this switch clause.
+         return JavaUtilDelegate.createLog(name);
+   }
+}
+```
+
+logApi默认为LogApi.JUL，具体指的设置是在static代码块中完成的
+
+```java
+private static LogApi logApi = LogApi.JUL;
+static {
+   ClassLoader cl = LogFactory.class.getClassLoader();
+   try {
+      // Try Log4j 2.x API
+      cl.loadClass("org.apache.logging.log4j.spi.ExtendedLogger");
+      logApi = LogApi.LOG4J;
+   }
+   catch (ClassNotFoundException ex1) {
+      try {
+         // Try SLF4J 1.7 SPI
+         cl.loadClass("org.slf4j.spi.LocationAwareLogger");
+         logApi = LogApi.SLF4J_LAL;
+      }
+      catch (ClassNotFoundException ex2) {
+         try {
+            // Try SLF4J 1.7 API
+            cl.loadClass("org.slf4j.Logger");
+            logApi = LogApi.SLF4J;
+         }
+         catch (ClassNotFoundException ex3) {
+            // Keep java.util.logging as default
+         }
+      }
+   }
+}
+```

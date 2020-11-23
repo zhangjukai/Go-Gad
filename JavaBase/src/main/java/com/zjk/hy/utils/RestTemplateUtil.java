@@ -1,3 +1,4 @@
+/*
 package com.zjk.hy.utils;
 
 import org.springframework.http.HttpEntity;
@@ -32,13 +33,15 @@ public class RestTemplateUtil {
         return rss.getBody();
     }
 
-    /**
+    */
+/**
      * @param req
      * @param url
      * @param method
      * @param params maybe null
      * @return
-     */
+     *//*
+
     private static ResponseEntity<String> request(ServletRequest req, String url, HttpMethod method, Map<String, ?> params) {
         HttpServletRequest request = (HttpServletRequest) req;
         //获取header信息
@@ -58,4 +61,4 @@ public class RestTemplateUtil {
         ResponseEntity<String> rss = HttpServletUtils.getRestTemplate().exchange(url, method, requestEntity, String.class, params);
         return rss;
     }
-}
+}*/

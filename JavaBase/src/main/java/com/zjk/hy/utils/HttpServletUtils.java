@@ -1,3 +1,4 @@
+/*
 package com.zjk.hy.utils;
 
 import org.apache.http.client.HttpClient;
@@ -23,8 +24,10 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
+*/
 /**
- */
+ *//*
+
 public class HttpServletUtils {
     private static final RestTemplate REST_TEMPLATE;
 
@@ -80,3 +83,4 @@ public class HttpServletUtils {
     }
 
 }
+*/

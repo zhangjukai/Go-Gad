@@ -1,3 +1,4 @@
+/*
 package com.zjk.hy.utils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -14,15 +15,18 @@ import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.List;
 
+*/
 /**
  * @author 张居开 2019-01-30
- */
+ *//*
+
 @Slf4j
 public class ExcelUtils {
 
     public static final String SUFFIX = ".xlsx";
 
-    /**
+    */
+/**
      * 导出Excel数据
      *
      * @param response
@@ -31,7 +35,8 @@ public class ExcelUtils {
      * @param properties 每列的key，和表头顺序一致
      * @param fileName   文件名
      * @param <T>
-     */
+     *//*
+
     public static <T> void exportToExcel(HttpServletResponse response, List<T> data, List<String> headers, List<String> properties, String fileName) {
         response.reset();
         response.setHeader("Access-Control-Allow-Origin", "*");
@@ -49,7 +54,8 @@ public class ExcelUtils {
         }
     }
 
-    /**
+    */
+/**
      * 导出Excel数据
      *
      * @param out
@@ -57,7 +63,8 @@ public class ExcelUtils {
      * @param headers    表头
      * @param properties 每列的key，和表头顺序一致
      * @param <T>        data的对象类型
-     */
+     *//*
+
     public static <T> void generateExcel(OutputStream out, List<T> data, List<String> headers, List<String> properties) {
         try (Workbook wb = new XSSFWorkbook()) {
             Sheet sheet = wb.createSheet();
@@ -74,7 +81,8 @@ public class ExcelUtils {
         }
     }
 
-    /**
+    */
+/**
      * 创建Excel导出内容体
      *
      * @param data
@@ -83,7 +91,8 @@ public class ExcelUtils {
      * @param sheet
      * @param maxWidth
      * @param <T>
-     */
+     *//*
+
     private static <T> void createBody(List<T> data, List<String> properties, Workbook wb, Sheet sheet, int[] maxWidth) {
         int i = 1, j;
         Cell cell = null;
@@ -116,7 +125,8 @@ public class ExcelUtils {
         }
     }
 
-    /**
+    */
+/**
      * 创建表头
      *
      * @param headers
@@ -124,7 +134,8 @@ public class ExcelUtils {
      * @param wb
      * @param sheet
      * @return
-     */
+     *//*
+
     private static void createHeader(List<String> headers, int[] maxWidth, Workbook wb, Sheet sheet) {
         sheet.autoSizeColumn(0);
         Row row = sheet.createRow(0);
@@ -145,25 +156,29 @@ public class ExcelUtils {
         }
     }
 
-    /**
+    */
+/**
      * 创建FontStyle
      *
      * @param wb
      * @param point 字体大小
      * @return
-     */
+     *//*
+
     public static Font createFontStyle(Workbook wb, short point) {
         Font fontStyle = wb.createFont();
         fontStyle.setFontHeightInPoints(point);  //设置标题字体大小
         return fontStyle;
     }
 
-    /**
+    */
+/**
      * 创建CellStyle
      *
      * @param wb
      * @return
-     */
+     *//*
+
     public static CellStyle createCellStyle(Workbook wb) {
         CellStyle cellStyle = wb.createCellStyle();
         cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);//垂直居中
@@ -178,3 +193,4 @@ public class ExcelUtils {
         throw new AssertionError("本类是一个工具类，不期望被实例化");
     }
 }
+*/

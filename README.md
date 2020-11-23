@@ -62,10 +62,14 @@
 
 ### Spring
 
-
++ [Spring常用点梳理总结](notes/Spring/spring常用点梳理总结.md)
++ [Spring循环依赖分析](notes/Spring/Spring循环依赖分析.md)
++ [Spring重点类总结](notes/Spring/Spring重点类总结.md)
 
 ## MyBatis
 
+- [Mybatis常用知识点梳理总结](notes/MyBatis/Mybatis常用知识点梳理总结.md)
+- [Mybatis日志实现](notes/MyBatis/Mybatis日志实现.md)
 - [MyBatis-Plus自动填充扩展](notes/MyBatis/MyBatis-Plus自动填充扩展.md)
 - [处理Blob字段.md](notes/MyBatis/处理Blob字段.md)
 
