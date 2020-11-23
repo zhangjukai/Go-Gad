@@ -120,7 +120,7 @@ static {
 
 启动项目过后，SqlSessionFactoryBean中LOGGER属性的值如下：
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/slf4j-noplogger.png)
+![](./res/slf4j-noplogger.png)
 
 通过LOGGER的值我们能够看出，日志是使用的slf4j，具体的却是一个NOPLogger，并且控制台有如下输出信息：
 
@@ -177,7 +177,7 @@ SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further detail
 
 这种情况下，SqlSessionFactoryBean中LOGGER属性的值如下：
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/slf4j-log4j2.png)
+![](./res/slf4j-log4j2.png)
 
 ##### SLF4J绑定Log4j
 
@@ -231,7 +231,7 @@ Logback是由log4j创始人设计的另一个开源日志组件,官方网站： 
 
 SqlSessionFactoryBean中得到的LOGGER，如下：
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/slf4j-logback.png)
+![](./res/slf4j-logback.png)
 
 ##### 使用JUL
 
@@ -247,7 +247,7 @@ SqlSessionFactoryBean中得到的LOGGER，如下：
 
 SqlSessionFactoryBean中得到的LOGGER，如下：
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/slf4j-jdk.png)
+![](./res/slf4j-jdk.png)
 
 但是这种情况下并没有Mybatis打印sql的日志输出，这是为什么呢？
 
@@ -270,7 +270,7 @@ private static void setImplementation(Class<? extends Log> implClass) {
 
 以上代码位于：org.apache.ibatis.logging.LogFactory，最终会调用一下代码，
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/JDK14Logger-isDebugEnabled.png)
+![](./res/JDK14Logger-isDebugEnabled.png)
 
 这儿跳过的细节比较多，直白的说就是，JUL中只会输出800以及以上级别的日志，这儿传入的是500，所以不会输出相关日志。
 
@@ -282,11 +282,11 @@ private static void setImplementation(Class<? extends Log> implClass) {
 
 spring5使用的spring-jcl(spring改了jcl的代码)来记录日志的，spring-context中默认引入了spring-jcl，如下：
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/Spring-jcl-jar.png)
+![](./res/Spring-jcl-jar.png)
 
 要使用jcl，需要将使用slf4j中引入的相关jar全部去掉，启动项目，SqlSessionFactoryBean中的LOGGER的值如下：
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/Spring-jcl-jul.png)
+![](./res/Spring-jcl-jul.png)
 
 由上图可以看到，具体的日志框架使用的是：JavaUtilLog（Spring-jcl默认使用jul），所以不会有sql语句的输出，上面已经分析过了。
 
@@ -345,7 +345,7 @@ static {
 
 启动项目，SqlSessionFactoryBean中的LOGGER如下：
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/Spring-jcl-log4j2.png)
+![](./res/Spring-jcl-log4j2.png)
 
 这样就能够正常打印相应的日志了，能够输出sql语句
 
@@ -381,7 +381,7 @@ org.apache.ibatis.logging.LogFactory.useLog4J2Logging();
 
 启动项目，SqlSessionFactoryBean中的LOGGER如下：
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/log4j2-LOGGER.png)
+![](./res/log4j2-LOGGER.png)
 
 由上图可以看出，这就是一个Log4j2的对象，同时也能够正常的输出日志
 
@@ -395,7 +395,7 @@ org.apache.ibatis.logging.LogFactory.useLog4JLogging();
 
 启动项目，SqlSessionFactoryBean中的LOGGER如下：
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/log4j-LOGGER.png)
+![](./res/log4j-LOGGER.png)
 
 由上图可以看出，这就是一个Log4j的对象，同时也能够正常的输出日志，sql日志输出如下:
 
@@ -409,7 +409,7 @@ DEBUG [main] -<== Total: 0
 
 org.apache.ibatis.logging.LogFactory.useJdkLogging();
 
-![](D:/workspace/Go-Gad/notes/MyBatis/res/JDK-LOGGER.png)
+![](./res/JDK-LOGGER.png)
 
 整个流程和上面的差不多，就不再累赘了。
 
