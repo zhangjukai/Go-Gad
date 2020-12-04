@@ -128,22 +128,22 @@
             <version>0.13</version>
         </dependency>
 
-        <!--<dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.26</version>
-        </dependency>-->
-        <!--<dependency>
+        </dependency>
+        <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
             <version>2.12.1</version>
         </dependency>
-        &lt;!&ndash;绑定log4j与slf4j &ndash;&gt;
+        <!--绑定log4j与slf4j -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.12.1</version>
-        </dependency>-->
+        </dependency>
         <!--<dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>

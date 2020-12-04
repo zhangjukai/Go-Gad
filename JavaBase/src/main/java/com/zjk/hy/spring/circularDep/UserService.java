@@ -7,15 +7,25 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
+
+@Component
 public class UserService  {
 
+    private IndexService indexService;
     public void print(){
-        System.out.println("UserService-aaaaaaaa");
+        System.out.println("UserService-aaaaaaaa"+indexService);
     }
 
-    public UserService() {
-        System.out.println("UserService------------------start");
+    public UserService(IndexService indexService) {
+        this.indexService = indexService;
     }
+    public UserService(){
+
+    }
+
+
+
 
     /*@Lookup(value = "indexService")
     protected IndexService createIndexService(){

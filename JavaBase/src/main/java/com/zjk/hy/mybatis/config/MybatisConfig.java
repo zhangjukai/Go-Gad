@@ -44,9 +44,10 @@ public class MybatisConfig {
         // org.apache.ibatis.logging.LogFactory.useCommonsLogging();
         // org.apache.ibatis.logging.LogFactory.useJdkLogging();
         // org.apache.ibatis.logging.LogFactory.useLog4JLogging();
-        org.apache.ibatis.logging.LogFactory.useJdkLogging();
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MybatisConfig.class);
         UserServiceImpl bean = context.getBean(UserServiceImpl.class);
+        System.out.println(bean.findList());
+        System.out.println(bean.findList());
         System.out.println(bean.findList());
     }
 }

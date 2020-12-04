@@ -90,6 +90,94 @@ public interface UserDao {
 
 具体内容，见同目录下同名文件
 
+## Mybatis一级缓存相关问题
+
+### Spring中为什么会失效
+
+因为Spring和Mybatis的集成包中扩展了一个SqlSessionTemplate(SqlSession接口的动态代理类)，在Spring容器启动时注入给了Mapper，SqlSessionTemplate代替了默认的DefaultSqlSession类，查询时不是直接查询，而是通过代理对象进行了增强，**主要是关闭了session**。
+
+```java
+finally {
+  if (sqlSession != null) {
+    closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
+  }
+}
+```
+
+**什么时候SqlSessionTemplate代替了默认的DefaultSqlSession：**
+
+1. 通过@MapperScan中的@Import，导入了一个MapperScannerRegistrar类
+
+2. MapperScannerRegistrar中的registerBeanDefinitions方法中，创建BeanDefinitionBuilder是传入了一个MapperScannerConfigurer
+
+3. MapperScannerConfigurer是一个BeanDefinitionRegistryPostProcessor，Spring加载的过程中会调用它的postProcessBeanDefinitionRegistry方法
+
+4. postProcessBeanDefinitionRegistry方法中new了一个ClassPathMapperScanner scanner
+
+5. 然后会调用scanner.scan()，scan方法中又会调用doScan(basePackages);
+
+6. ClassPathMapperScanner中重写了父类ClassPathBeanDefinitionScanner的doScan方法
+
+   ```java
+    @Override
+     public Set<BeanDefinitionHolder> doScan(String... basePackages) {
+       Set<BeanDefinitionHolder> beanDefinitions = super.doScan(basePackages);
+   
+       if (beanDefinitions.isEmpty()) {
+       } else {
+         processBeanDefinitions(beanDefinitions);
+       }
+   
+       return beanDefinitions;
+     }
+   ```
+
+   在该方法中调用了父类的doScan(basePackages);，然后执行processBeanDefinitions(beanDefinitions);
+
+7. 在processBeanDefinitions对Mapper的beanDefinition进行修改
+
+   7.1 设置beanClass
+
+   ![](./res/scanner_mapper_setbeanclass.png)
+
+   以上操作，将org.mybatis.spring.mapper.MapperFactoryBean设置给了扫描到的mapper
+
+   7.2 设置autowireMode
+
+   ![](./res/scanner_mapper_setautowiremode.png)
+
+   此处将扫描到的Mapper的autowireMode设置为通过类型自动装配（AUTOWIRE_BY_TYPE），这个我们在Spring中介绍过，类型是AUTOWIRE_BY_TYPE，类中属性有setter方法就会自动装配。
+
+   上面已经说过了，扫描到的Mapper都是MapperFactoryBean，那么下面主要来看下MapperFactoryBean的内容。
+
+8. MapperFactoryBean
+
+   ```java
+   public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements FactoryBean<T> 
+   ```
+
+   MapperFactoryBean本身并没有什么内容，但是它继承了SqlSessionDaoSupport，并且实现了FactoryBean
+
+9. SqlSessionDaoSupport中的sqlSessionTemplate
+
+   ```java
+   public abstract class SqlSessionDaoSupport extends DaoSupport {
+   
+     private SqlSessionTemplate sqlSessionTemplate;
+   
+     public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
+       if (this.sqlSessionTemplate == null || sqlSessionFactory != 
+           this.sqlSessionTemplate.getSqlSessionFactory()) {
+         this.sqlSessionTemplate = createSqlSessionTemplate(sqlSessionFactory);
+       }
+     }
+   }
+   ```
+
+   由于所有Mapper都被设置为AUTOWIRE_BY_TYPE，所以这儿会调用setSqlSessionFactory，就是在这儿SqlSessionTemplate代替了默认的DefaultSqlSession，这儿应该是一个装饰者模式，对设计模式不是很懂。
+
+### Mybatis一级缓存底层实现原理
+
 
 
 

@@ -2,3 +2,6 @@
 /JavaBase/target
 /JavaBase/.idea
 /JavaBase/*.iml
+/CloudStu/.idea
+/CloudStu/cloud-provider-payment/target
+/CloudStu/cloud-eureka-server/*.iml

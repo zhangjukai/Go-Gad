@@ -6,8 +6,8 @@ import com.zjk.hy.spring.circularDep.impl.MyImportSelector;
 import org.springframework.context.annotation.*;
 
 @Configuration
-// @ComponentScan("com.zjk.hy.spring.circularDep")
-@Import({MyImportSelector.class, MyImportBeanDefinitionRegistrar.class})
+@ComponentScan("com.zjk.hy.spring.circularDep")
+/*@Import({MyImportSelector.class, MyImportBeanDefinitionRegistrar.class})*/
 public class CircleMainConfig {
     public static void main(String[] args) {
        /* AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
@@ -16,19 +16,9 @@ public class CircleMainConfig {
         context.addBeanFactoryPostProcessor(new MyBeanFactoryPostProcessor());
         context.register(CircleMainConfig.class);
         context.refresh();
-      /*  IndexService indexService = context.getBean(IndexService.class);
-        System.out.println(indexService.hashCode());
-        IndexService indexService1 = context.getBean(IndexService.class);
-        System.out.println(indexService1.hashCode());
-        UserService userService = context.getBean(UserService.class);
-        userService.print();*/
-
-
-        TestBaseService baseService = (TestBaseService) context.getBean("proxy-baseService");
-        baseService.print();
     }
 
-    @Bean
+    /*@Bean
     public IndexService indexService(){
         return new IndexService();
     }
@@ -37,5 +27,5 @@ public class CircleMainConfig {
     public UserService userService(){
         indexService();
         return new UserService();
-    }
+    }*/
 }

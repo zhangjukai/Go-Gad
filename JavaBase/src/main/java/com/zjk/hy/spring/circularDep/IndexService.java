@@ -9,12 +9,11 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
+@Component
 public class IndexService {
-   /* @Autowired
-    UserService userService;*/
-
-
+    UserService userService;
     public void print(){
+        System.out.println(userService);
         System.out.println("IndexService-aaaaaaaaaaaa");
     }
 
@@ -22,6 +21,6 @@ public class IndexService {
         System.out.println("IndexService-------construct");
     }
     public void setUserService(UserService userService) {
-        /*this.userService = userService;*/
+        this.userService = userService;
     }
 }

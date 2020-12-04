@@ -1,6 +1,5 @@
-package com.zjk.hy.spring;
+package com.zjk.hy.spring.aop;
 
-import com.zjk.hy.spring.aop.*;
 import org.springframework.context.annotation.*;
 
 @Configuration

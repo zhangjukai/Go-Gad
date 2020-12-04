@@ -68,10 +68,10 @@
 
 ## MyBatis
 
-- [Mybatis常用知识点梳理总结](notes/MyBatis/Mybatis常用知识点梳理总结.md)
-- [Mybatis日志实现](notes/MyBatis/Mybatis日志实现.md)
-- [MyBatis-Plus自动填充扩展](notes/MyBatis/MyBatis-Plus自动填充扩展.md)
-- [处理Blob字段.md](notes/MyBatis/处理Blob字段.md)
+- [Mybatis常用知识点梳理总结](notes/Mybatis/Mybatis常用知识点梳理总结.md)
+- [Mybatis日志实现](notes/Mybatis/Mybatis日志实现.md)
+- [MyBatis-Plus自动填充扩展](notes/Mybatis/MyBatis-Plus自动填充扩展.md)
+- [处理Blob字段.md](notes/Mybatis/处理Blob字段.md)
 
 ## 设计模式
 
@@ -94,7 +94,7 @@
 
 + [UML简介](notes/Design/Pattern/UML/UML简介.md)
 
-### Redis
+## Redis
 
 [Redis雪崩、穿透、击穿](notes/DB/redis/Redis雪崩、穿透、击穿.md)
 

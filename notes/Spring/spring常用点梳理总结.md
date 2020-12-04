@@ -564,6 +564,90 @@ if (dogClass.isAnnotationPresent(MyTable.class)){
 }
 ```
 
+## Spring AutowireMode
+
+### 自动装配类型
+
+见AutowireCapableBeanFactory中：
+
+```java
+// 不自动装配，如果加了@Autowired或者@Resource会通过类型自动装配
+int AUTOWIRE_NO = 0;
+// 通过name自动装配
+int AUTOWIRE_BY_NAME = 1;
+// 通过类型自动装配
+int AUTOWIRE_BY_TYPE = 2;
+// 会自动选择构造方法，进行自动装配，这个下面会详细说一下
+int AUTOWIRE_CONSTRUCTOR = 3;
+@Deprecated
+int AUTOWIRE_AUTODETECT = 4;
+```
+
+### 如何修改默认的自动装配类型
+
+Spring默认的装配类型是AUTOWIRE_NO，想要修改的话我们可以通过实现`ImportBeanDefinitionRegistrar`来完成，如下代码：
+
+```java
+import com.zjk.hy.spring.circularDep.TestBaseService;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.beans.factory.support.*;
+import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.type.AnnotationMetadata;
+
+public class MyImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, 
+                                        BeanDefinitionRegistry registry) {
+        GenericBeanDefinition definition = (GenericBeanDefinition) 
+            registry.getBeanDefinition("indexService");
+        if(definition!=null){
+            definition.setAutowireMode(AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE);
+        }
+        GenericBeanDefinition userServiceDefinition = 
+						(GenericBeanDefinition)registry.getBeanDefinition("userService");
+        if(userServiceDefinition!=null){
+    		 userServiceDefinition
+         			.setAutowireMode(AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR);
+        }
+    }
+}
+```
+
+具体方法就是从BeanDefinitionRegistry中拿出相应的BeanDefinition，然后调用`setAutowireMode`方法进行设置。
+
+### AUTOWIRE_NO
+
+不自动装配，如果加了@Autowired或者@Resource会通过AUTOWIRE_BY_TYPE自动装配
+
+### AUTOWIRE_BY_NAME
+
+会通过setter方法，通过set方法名进行自动装载，如果set的方法名与bean的name不相等，不能自动装载
+
+### AUTOWIRE_BY_TYPE
+
+通过setter方法的类型进行自动装载
+
+### AUTOWIRE_CONSTRUCTOR说明
+
+```java
+public UserService(IndexService indexService) {
+    this.indexService = indexService;
+}
+```
+
+如果没有空的构造方法，以上构造方法在AUTOWIRE_NO类型下也会被自动装载，因为要实例化对象，IndexService参数是必须的。
+
+```java
+public UserService(IndexService indexService) {
+    this.indexService = indexService;
+}
+public UserService(){
+
+}
+```
+
+如果同时存在有参和无参构造方法，那么在AUTOWIRE_NO类型下是不会自动装载的，而使用AUTOWIRE_CONSTRUCTOR，会有选择的进行自动装载，就会调用有参的构造方法，将IndexService自动装载
+
 ## Spring Bean生命周期涉及内容
 
 ### Bean初始化时添加额外逻辑
@@ -808,6 +892,25 @@ Spring框架的一个优点是Spring中的bean不会感知到Spring容器的存�
 ![](./res/ApplicationContextAware_1.png)
 
 整体上都是XXXXAware会有相应的XXXXAwareProcessor相对应
+
+## ImportAware接口
+
+这个接口的实现类，需要实现setImportMetadata方法，
+
+```java
+@Override
+public void setImportMetadata(AnnotationMetadata importMetadata) {
+
+}
+```
+
+我们可以通过AnnotationMetadata获取到Spring中任何类上的所有注解
+
+实际中使用的并不是很多，具体使用场景感觉不是很明确。
+
+## ConversionService
+
+
 
 ## AOP
 
