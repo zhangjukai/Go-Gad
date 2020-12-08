@@ -5,3 +5,4 @@
 /CloudStu/.idea
 /CloudStu/cloud-provider-payment/target
 /CloudStu/cloud-eureka-server/*.iml
+/CloudStu/cloud-eureka-server/target
