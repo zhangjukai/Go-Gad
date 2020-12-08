@@ -16,3 +16,17 @@ mybatis-plus:
     map-underscore-to-camel-case: false
     lazy-loading-enabled: true
   mapper-locations: classpath*:mapper/*.xml
+
+eureka:
+  instance:
+    instance-id: payment01
+    prefer-ip-address: true
+    #  Eureka客户端向服务端发送心跳的时间间隔，单位为秒
+    lease-renewal-interval-in-seconds: 1
+    # Eureka服务端在收到最后一次心跳后等待时间上限，单位为秒
+    lease-expiration-duration-in-seconds: 2
+  client:
+    registerWithEureka: true #是否向服务注册中心注册自己
+    fetchRegistry: true #是否检索服务
+    serviceUrl: #服务注册中心的配置内容，指定服务注册中心的位置
+      defaultZone: http://127.0.0.1:8000/eureka/
