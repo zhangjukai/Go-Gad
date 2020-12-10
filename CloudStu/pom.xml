@@ -11,6 +11,8 @@
     <modules>
         <module>cloud-provider-payment</module>
         <module>cloud-eureka-server</module>
+        <module>cloud-provider-user9001</module>
+		<module>cloud-provider-user9002</module>
     </modules>
 
     <!-- 版本号管理 -->

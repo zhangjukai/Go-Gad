@@ -6,3 +6,7 @@
 /CloudStu/cloud-provider-payment/target
 /CloudStu/cloud-eureka-server/*.iml
 /CloudStu/cloud-eureka-server/target
+/CloudStu/cloud-provider-user9002/*.iml
+/CloudStu/cloud-provider-user9001/*.iml
+/CloudStu/cloud-provider-user9002/target
+/CloudStu/cloud-provider-user9001/target
