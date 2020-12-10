@@ -1,6 +1,7 @@
 package com.zjk.hy.controller;
 
 import com.zjk.hy.dto.UserDo;
+import com.zjk.hy.service.UserFeignService;
 import com.zjk.hy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,11 +16,16 @@ public class UserController {
     private static String USER_SERVICE = "http://CLOUD-PROVIDER-USER";
     @Autowired
     RestTemplate restTemplate;
+    @Autowired
+    UserFeignService userFeignService;
 
     @GetMapping(value = "/user/list")
     public String findList() {
         return restTemplate.getForObject(USER_SERVICE + "/user/list", String.class);
     }
-
+    @GetMapping(value = "/feign/user/list")
+    public String findListByFeign() {
+        return userFeignService.findList();
+    }
 
 }
