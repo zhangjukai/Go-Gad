@@ -267,7 +267,7 @@ public class LoadBalancerInterceptor implements ClientHttpRequestInterceptor {
 
 ![](./res/InterceptingClientHttpRequest_execute.png)
 
-+ 在intercept方法中通过loadBalancer调用了RibbonLoadBalancerClient的execute方法
++ 在intercept方法中通过loadBalancer(RibbonLoadBalancerClient)调用了RibbonLoadBalancerClient的execute方法
 
 ![](./res/intercept_loadBalancer_execute.png)
 
@@ -305,3 +305,11 @@ protected Server getServer(ILoadBalancer loadBalancer, Object hint) {
 ```
 
 到这一步过后就是调用具体的负载均衡算法了，Ribbon的整个流程就算梳理完成了。
+
+总结下来就是：RestTemplate提供了拦截器功能，Ribbon通过实现ClientHttpRequestInterceptor接口，定义了一个 LoadBalancerInterceptor类，在该类的intercept方法中通过RibbonLoadBalancerClient对象，调用execute方法，最终调用负载均衡具体的算法。
+
+另外有两个点就是：
+
+一、实现了ClientHttpRequestInterceptor接口的拦截器怎么设置到RestTemplate上的
+
+二、怎么调用的intercept方法的
