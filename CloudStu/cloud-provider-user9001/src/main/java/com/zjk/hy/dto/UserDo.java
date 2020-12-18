@@ -4,9 +4,9 @@ import lombok.Data;
 
 @Data
 public class UserDo {
-    private int id;
+    private Integer id;
     private String name;
-    private int age;
+    private Integer age;
     @Override
     public String toString() {
         return "User{" +

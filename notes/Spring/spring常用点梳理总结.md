@@ -66,6 +66,8 @@ https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#be
 
 ### BeanFactory 与 FactoryBean
 
+都可以用来创建对象，当使用BeanFactory时必须遵循完整的创建过程，这个过程是由Spring来控制管理的。而FactoryBean相对简单一些。
+
 #### BeanFactory
 
 访问SpringBean容器的根接口。

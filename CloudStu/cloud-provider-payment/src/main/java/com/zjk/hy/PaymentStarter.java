@@ -4,9 +4,11 @@ import com.zjk.rule.MyRule;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -19,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 @MapperScan(value = "com.zjk.hy.dao")
 @RibbonClient(name = "CLOUD-PROVIDER-USER",configuration = MyRule.class)
 @EnableFeignClients
+@EnableCircuitBreaker
 public class PaymentStarter {
 
     public static void main(String[] args) {
