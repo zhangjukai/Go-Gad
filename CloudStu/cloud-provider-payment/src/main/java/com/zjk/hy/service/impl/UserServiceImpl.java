@@ -4,6 +4,7 @@ import com.zjk.hy.dao.UserDao;
 import com.zjk.hy.dto.UserDo;
 import com.zjk.hy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
