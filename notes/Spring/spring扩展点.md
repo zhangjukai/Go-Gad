@@ -50,3 +50,15 @@ protected void customizeBeanFactory(DefaultListableBeanFactory beanFactory) {
    }
 }
 ```
+
+## 自定义标签
+
+## 自定义属性编辑器
+
++ 自定义继承自PropertyEditorSupport的编辑器
+
++ 自定义一个实现了PropertyEditorRegistrar接口的类
+
+  作为属性编辑器的注册器，该注册器的目的是为了让Spring识别到上面自定义的编辑器
+
++ 让Spring能够识别到注册器

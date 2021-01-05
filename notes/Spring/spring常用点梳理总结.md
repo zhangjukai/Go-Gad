@@ -2032,7 +2032,7 @@ public static Log getLog(String name) {
 }
 ```
 
-logApi默认为LogApi.JUL，具体指的设置是在static代码块中完成的
+logApi默认为LogApi.JUL，具体的设置是在static代码块中完成的
 
 ```java
 private static LogApi logApi = LogApi.JUL;
@@ -2062,3 +2062,9 @@ static {
    }
 }
 ```
+
+## Spring EL表达式解析器结构
+
+StandardBeanExpressionResolver->SpelExpressionParser->SpelParserConfiguration
+
+首先是一个Bean表达式的处理器，然后在内部封装了一个EL的解析器，然后在解析器中封装了一个对应的配置类（配置器）；这是一种思想，可以用于以后的开发中。
