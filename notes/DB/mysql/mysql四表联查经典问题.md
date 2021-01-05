@@ -91,7 +91,7 @@ INSERT INTO `score`(`stuId`,`courseId`,`grade`) VALUES
    HAVING AVG(b.grade) > 80;
    ```
 
-   以上sql主要是对组函数<font style="color:red">AVG</font>（求平均值）和分组条件判断<font style="color:red">HAVING</font>的应用
+   以上sql主要是对组函数<q style="color:red">AVG</q>（求平均值）和分组条件判断<span style="color:red">HAVING</span>的应用
 
 2. 查询所有学生的学号、姓名、选课数、总成绩
 
