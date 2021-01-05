@@ -91,7 +91,7 @@ INSERT INTO `score`(`stuId`,`courseId`,`grade`) VALUES
    HAVING AVG(b.grade) > 80;
    ```
 
-   以上sql主要是对组函数<q style="color:red">AVG</q>（求平均值）和分组条件判断<span style="color:red">HAVING</span>的应用
+   以上sql主要是对组函数**AVG**（求平均值）和分组条件判断**HAVING**的应用
 
 2. 查询所有学生的学号、姓名、选课数、总成绩
 
@@ -123,11 +123,85 @@ INSERT INTO `score`(`stuId`,`courseId`,`grade`) VALUES
 
    <img src="./res/join_more_result.png" style="float:left" />
 
-   
+   导致以上结果的原因是，张老师有两门课程，通过连接查询的时候就会出现重复的数据，有两种方法可以解决：
 
-   
+   + 使用DISTINCT去重
++ 通过只查询，使用in来过滤
+  
+```mysql
+   SELECT a.id,a.name from student as a
+   where a.id in (
+   SELECT b.stuId FROM score as b
+   INNER JOIN course as c on (b.courseId = c.id)
+   INNER JOIN teacher as d on (c.teacherId = d.id)
+   where d.`name` = '张老师');
+```
 
-   
+5.  查询学过语文和数学两门课程的学生的学号、姓名
 
-   
+   解法一：
 
+   ```mysql
+   SELECT a.id,a.`name` from student as a
+   INNER JOIN score as b on (a.id=b.stuId)
+   WHERE b.courseId in(select id from course WHERE `name` in ('语文' , '数学'))
+   GROUP BY a.id,a.`name`
+   HAVING count(a.id) = 2;
+   ```
+
+   解法二：
+
+   通过exists函数，如下：
+
+   ```mysql
+   SELECT a.id,a.`name` from student as a
+   INNER JOIN score as b on (a.id=b.stuId)
+   where b.courseId = 1 
+   and EXISTS(select * from score where courseId=2 and a.id = stuId)
+   ```
+
+6.  查询课程编号为“2”的总成绩
+
+   ```mysql
+   select sum(grade) from score where courseId = 2
+   ```
+
+7.  查询所有课程成绩小于等于80分的学生的学号、姓名
+
+   ```mysql
+   SELECT a.id,a.`name` from student as a
+   INNER JOIN (SELECT stuId,max(grade) as maxGrade from score GROUP BY stuId) as b
+   on (a.id = b.stuId)
+   WHERE b.maxGrade <= 80
+   ```
+
+   思路：所有课程成绩小于等于80分，也就是说，没有一门课程的成绩是大于80分的，那么可以看每个学生的最高成绩是否大于80分，如果最高成绩都小于等于80分就是我们要找的数据。
+
+8.  查询没有学全所有课的学生的学号、姓名
+
+   ```mysql
+   SELECT a.id,a.`name` from student as a
+   INNER JOIN score as b on (a.id = b.stuId)
+   GROUP BY a.id,a.`name`
+   HAVING COUNT(b.id) < (SELECT COUNT(id) from course)
+   ```
+
+9.  查询和“2”号同学所学课程完全相同的其他同学的id和name
+
+   ```mysql
+   SELECT a.id,a.name FROM student as a
+   INNER JOIN score as b on (a.id = b.stuId)
+   where a.id != 2 and b.courseId in (SELECT courseId FROM score where stuId = 2)
+   GROUP BY a.id,a.name
+   HAVING COUNT(b.courseId) = (SELECT COUNT(id) FROM score where stuId = 2)
+   ```
+
+10.  查询各科成绩最高和最低的分： 以如下的形式显示：课程名称，最高分，最低分
+
+   ```mysql
+   select a.id as '课程ID',a.`name` as '课程名称',MAX(b.grade) as '最高分',MIN(b.grade) as '最低分' from course as a
+   LEFT JOIN score as b on (a.id = b.courseId)
+   GROUP BY a.id,a.`name`
+   ```
+
+   https://blog.csdn.net/wq12310613/article/details/100705492
