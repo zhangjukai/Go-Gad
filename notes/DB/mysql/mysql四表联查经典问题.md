@@ -204,4 +204,51 @@ INSERT INTO `score`(`stuId`,`courseId`,`grade`) VALUES
    GROUP BY a.id,a.`name`
    ```
 
-   https://blog.csdn.net/wq12310613/article/details/100705492
+11.  按各科及格率的百分数从高到低排列，以如下形式显示：课程号、课程名、平均成绩、及格百分数
+
+   ```mysql
+   select a.id,a.`name`,AVG(b.grade),
+   (IFNULL(SUM(CASE WHEN b.grade>60 THEN 1 ELSE 0 END),0)/COUNT(b.id))*100 as jgl
+   from course as a
+   LEFT JOIN score as b on (a.id = b.courseId)
+   GROUP BY a.id,a.`name`
+   ORDER BY jgl DESC
+   ```
+
+   这个问题初步想及格百分数是一个比较麻烦的项，可能不知道怎么查，其实很好处理，一个是及格数，一个是总数，以上sql理论逻辑上还有个问题，就是这个课程没有人学习，就会导致除数为0，应该会出现异常，当然这个不是这儿讨论的重点。
+
+12.  查询不同老师所教不同课程平均分从高到低显示
+
+   ```mysql
+   SELECT a.id,a.`name` as tname,c.`name` as cname,AVG(b.grade) as grade FROM teacher as a
+   INNER JOIN course as c on (c.teacherId = a.id)
+   INNER JOIN score as b on (c.id = b.courseId)
+   GROUP BY a.id,a.`name`,c.`name`
+   ORDER BY grade DESC
+   ```
+
+13.  查询学生平均成绩及其名次
+
+   ```mysql
+   SELECT @rowNum:=@rowNum + 1 as 'index',tb.* from (
+   SELECT a.id,a.`name`,AVG(b.grade) grade 
+   FROM student as a
+   LEFT JOIN score as b on (a.id=b.stuId)
+   GROUP BY a.id,a.`name`
+   ORDER BY grade DESC) as tb,(SELECT @rowNum:=0) as ta
+   ```
+
+   这个问题主要就是名次，需要搞一个序号，所以套用了一层子查询，然后通过SELECT @rowNum:=0来实现的
+
+14.  查询每门课程被选修的学生数
+
+   ```mysql
+   SELECT a.id,a.name,COUNT(b.stuId) as stuNum from course AS a
+   left JOIN score as b on (a.id = b.courseId)
+   GROUP BY a.id,a.name
+   ```
+
+## 总结
+
+其实到这个程度已经差不多了，基础的东西肯定是会了，后面开始整个mysql的高级部分，调优等待
+
