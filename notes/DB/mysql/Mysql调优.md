@@ -106,6 +106,16 @@ mysql默认使用的是可重复读，orcoal默认使用的是读已提交
 | 可重复读（REPEATABLE READ）  |      |            | √    |
 | 串行化（SERIALIZABLE）       |      |            |      |
 
+**如何设置事务级别：**
+
+```mysql
+set session transaction isolation level read uncommitted;
+```
+
+session：指定设置的作用域为当前会话
+
+global：全局设置
+
 ### 一些命令
 
 + SHOW PROFILES;
@@ -123,3 +133,65 @@ mysql默认使用的是可重复读，orcoal默认使用的是读已提交
 + Performance Schema
 
   另外单开记录
+  
++ show processlist;
+
+  查看有多少客户端链接了mysql
+
+### 数据库连接池
+
+https://github.com/alibaba/druid/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98
+
+## schema与数据类型优化
+
+### 数据类型优化
+
++ 更小的通常更好
+
+  应该尽量使用可以正常存储数据的**最小数据类型**，更小的数据类型通常更快，因为他们占用更少的磁盘，内存和CPU缓存，并且处理时需要的CPU周期更少。
+
++ 简单就好
+
+  简单数据类型的操作通常需要更少的CPU周期，eg：
+
+  + 整型比字符型操作代价更低，因为字符串的校对规则比整型更复杂
+
+  + 使用Mysql自建类型而不是字符串来储存日期和时间
+
+    测试情况：
+
+    ```mysql
+    CREATE TABLE `typetest1` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `querytime` datetime DEFAULT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
+    CREATE TABLE `typetest2` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `querytime` varchar(20) DEFAULT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
+    SET PROFILE = 1;
+    SELECT * from typetest1;
+    SHOW PROFILES;
+    SELECT * from typetest2;
+    SHOW PROFILES;
+    ```
+
+    最后得到的结果是：`0.000328`、`0.00036225 `，如果加上时间条件得到的结果是：`0.0004685`，`0.00035375  `,由此看来查询所耗时间差距还是特别大的。
+
+  + 用整型存储IP地址
+
+    mysql提供了ip与整型相互转换的函数，如下：
+
+    ```mysql
+    SELECT INET_ATON('192.168.11.125');
+    SELECT INET_NTOA(3232238461);
+    ```
+
++ 尽量避免null
+
+  如果查询中包含为NULL的列，对于mysql来说很难优化，因为可为null的列，使得索引、索引统计和值的比较都更加复杂。
+
+  坦白来说，通常情况下null的列改为not null到来的性能提升比较小，所以没有必要将所有的schema进行修改，但是应该尽量避免设计成null的列。
+
