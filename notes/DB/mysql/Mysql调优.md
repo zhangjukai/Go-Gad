@@ -46,7 +46,7 @@ Redo Log指的是在事务中对任何数据的操作，都将最新的数据备
 
 <img src="./res/mysql数据写入磁盘流程.png" style="float:left;" />
 
-上图实际展示了三种写入策略，可以通过设置**innodb_flush_log_at_trx_commit**参数来调整，InnoDB中默认innodb_flush_log_at_trx_commit=0
+上图实际展示了三种写入策略，可以通过设置**innodb_flush_log_at_trx_commit**参数来调整，InnoDB中默认innodb_flush_log_at_trx_commit=1
 
 ##### undo Log
 
@@ -62,7 +62,7 @@ undo Log指的是事务开始前，在操作任何数据之前，首先将要操
 
 + 原子性（Atomicity）
 
-  在一个事务中的所有操作，作为一个整体不可分割，要么全部执行成功，要么全部失败，通过undo Log实现。
+  在一个事务中的所有操作，作为一个整体不可分割，要么全部执行成功，要么全部失败，<span style="color:red">通过undo Log实现</span>。
 
 + 一致性(Consistency)
 
@@ -74,7 +74,7 @@ undo Log指的是事务开始前，在操作任何数据之前，首先将要操
 
 + 持久性(Durability)
 
-  事务一旦提交，其对数据库的更新就是持久的，通过Redo Log实现。
+  事务一旦提交，其对数据库的更新就是持久的，<span style="color:red">通过Redo Log实现</span>。
 
 ### mysql事务隔离级别
 
@@ -116,6 +116,12 @@ session：指定设置的作用域为当前会话
 
 global：全局设置
 
+### 数据库范式
+
++ 1NF：字段不可分
++ 2NF：有主键，非主键字段依赖主键
++ 3NF：非主键字段不能相互依赖
+
 ### 一些命令
 
 + SHOW PROFILES;
@@ -146,52 +152,106 @@ https://github.com/alibaba/druid/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98
 
 ### 数据类型优化
 
-+ 更小的通常更好
+#### 更小的通常更好
 
-  应该尽量使用可以正常存储数据的**最小数据类型**，更小的数据类型通常更快，因为他们占用更少的磁盘，内存和CPU缓存，并且处理时需要的CPU周期更少。
+应该尽量使用可以正常存储数据的<span style="color:red">最小数据类型</span>，更小的数据类型通常更快，因为他们占用更少的磁盘，内存和CPU缓存，并且处理时需要的CPU周期更少。
 
-+ 简单就好
+#### 简单就好
 
-  简单数据类型的操作通常需要更少的CPU周期，eg：
+简单数据类型的操作通常需要更少的CPU周期，eg：
 
-  + 整型比字符型操作代价更低，因为字符串的校对规则比整型更复杂
++ 整型比字符型操作代价更低，因为字符串的校对规则比整型更复杂
 
-  + 使用Mysql自建类型而不是字符串来储存日期和时间
++ 使用Mysql自建类型而不是字符串来储存日期和时间
 
-    测试情况：
+  测试情况：
 
-    ```mysql
-    CREATE TABLE `typetest1` (
-      `id` int(11) NOT NULL AUTO_INCREMENT,
-      `querytime` datetime DEFAULT NULL,
-      PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
-    CREATE TABLE `typetest2` (
-      `id` int(11) NOT NULL AUTO_INCREMENT,
-      `querytime` varchar(20) DEFAULT NULL,
-      PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
-    SET PROFILE = 1;
-    SELECT * from typetest1;
-    SHOW PROFILES;
-    SELECT * from typetest2;
-    SHOW PROFILES;
-    ```
+  ```mysql
+  CREATE TABLE `typetest1` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `querytime` datetime DEFAULT NULL,
+    PRIMARY KEY (`id`)
+  ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
+  CREATE TABLE `typetest2` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `querytime` varchar(20) DEFAULT NULL,
+    PRIMARY KEY (`id`)
+  ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
+  SET PROFILE = 1;
+  SELECT * from typetest1;
+  SHOW PROFILES;
+  SELECT * from typetest2;
+  SHOW PROFILES;
+  ```
 
-    最后得到的结果是：`0.000328`、`0.00036225 `，如果加上时间条件得到的结果是：`0.0004685`，`0.00035375  `,由此看来查询所耗时间差距还是特别大的。
+  最后得到的结果是：`0.000328`、`0.00036225 `，如果加上时间条件得到的结果是：`0.0004685`，`0.00035375  `,由此看来查询所耗时间差距还是特别大的。
 
-  + 用整型存储IP地址
+#### 用整型存储IP地址
 
-    mysql提供了ip与整型相互转换的函数，如下：
+mysql提供了ip与整型相互转换的函数，如下：
 
-    ```mysql
-    SELECT INET_ATON('192.168.11.125');
-    SELECT INET_NTOA(3232238461);
-    ```
+```mysql
+SELECT INET_ATON('192.168.11.125');
+SELECT INET_NTOA(3232238461);
+```
 
-+ 尽量避免null
+#### 尽量避免null
 
-  如果查询中包含为NULL的列，对于mysql来说很难优化，因为可为null的列，使得索引、索引统计和值的比较都更加复杂。
+如果查询中包含为NULL的列，对于mysql来说很难优化，因为可为null的列，使得索引、索引统计和值的比较都更加复杂。
 
-  坦白来说，通常情况下null的列改为not null到来的性能提升比较小，所以没有必要将所有的schema进行修改，但是应该尽量避免设计成null的列。
+坦白来说，通常情况下null的列改为not null到来的性能提升比较小，所以没有必要将所有的schema进行修改，但是应该尽量避免设计成null的列。
+
+#### 优化细则
+
+##### 整数类型
+
+可以使用的几种数据类型：TINYINT(8)、SMALLINT(16)、MEDIUMINT(24)、INT(32)、BIGINT(64)；尽量使用满足需求的最小数据类型。
+
+##### 字符和字符串类型
+
++ varchar
+
+1. 可变长度，根据数据长度决定磁盘占用空间
+2. varchar(n)，n小于等于255，额外使用一个字节保存长度，如果大于255，额外使用两个字节保存长度。
+3. varchar(5)和varchar(255)，保存相同的内容，硬盘存储空间相同，但内存占用空间是指定的大小(不相同)。
+4. varchar在5.6之前变更长度，或者从255变更到255以上的时候，都会导致锁表。
+5. 应用场景
+   + 存储数据波动较大的数据
+   + 字符串很少更新的场景，每次更新后都会重新算，并使用额外空间来保存字符串长度
+   + 适合保存多字节字符，如：汉字、特殊字符等
+
++ char
+
+1. 固定长度的字符串，最大长度：255
+2. 会自动删除末尾的空格
+3. 检索效率、写效率会比varchar高，以空间换时间
+4. 应用场景
+   + 存储长度波动不大的数据，如：MD5摘要
+   + 存储短字符串，经常更新的字符串
+
+##### BLOB和TEXT类型
+
+mysql把每个BLOB和TEXT值当作一个独立的对象处理，两者都是为了存储很大数据而设计的，分别采用二进制和字符串方式存储。
+
+实际中不建议使用，当遇到数据很大的时候可以存文件，数据库里面记录文件地址。
+
+##### 日期时间类型
+
+mysql中对于时间类型有：date、time、datetime、timestamp等类型。在实际使用中，不要使用字符串类型来存储日期时间数据，另外使用int存储日期时间不如使用timestamp类型。<span style="color:red">因为日期时间类型占用的存储空间更小，mysql本身还提供了丰富处理函数，能够方便的对日期进行比较和计算</span>。
+
+| 类型      | 占用空间 | 存储范围                                                     | 时区支持             |
+| --------- | -------- | ------------------------------------------------------------ | -------------------- |
+| datetime  | 8个字节  | 可精确到毫秒(范围大)                                         | 与时区无关           |
+| timestamp | 4个字节  | 时间范围：1970-01-01到2038-01-19，可精确到秒，采用整型存储   | 依赖数据库设置的时区 |
+| date      | 3个字节  | 保存1000-01-01到9999-12-31之间的日期，精确到日，mysql提供大量日期函数 |                      |
+
+##### 使用枚举代替字符串类型
+
+有时候可以使用枚举代替常用的字符串类型，mysql存储枚举类型非常紧凑，会根据列表值得数据压缩到一两个字节中，mysql内部会将每个值在列表中的位置保存为整数，且在表的.frm文件中保存“数字-字符串”的映射关系。
+
+### 字符集的选择
+
+对于mysql字符集的选择，这儿主要针对UTF-8做下补充，标准的UTF-8字符集编码是可以用1-4个字节去编码21位字符，只支持Unicode中 [基本多文本平面](https://zh.wikipedia.org/wiki/Unicode字符平面映射)（U 0000至U FFFF），有部分内容不支持。
+
+mysql 5.5.3之后，增加了utf8mb4,是utf8的超集，能够使用4个字节存储更多的字符。参考，https://blog.csdn.net/qq_17555933/article/details/101445526
 
