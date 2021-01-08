@@ -136,3 +136,24 @@ public class CustomEditorConfigurer implements BeanFactoryPostProcessor, Ordered
   ```
 
   这种方式更简单，只需要定义AddressPropertyEditor，不用定义AddressPropertyEditorRegistrar
+
+## postProcessBeanFactory方法扩展
+
+可以对beanFactory做些处理，如下：
+
+```java
+@Override
+protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+   beanFactory.addBeanPostProcessor(new ServletContextAwareProcessor(this.servletContext, this.servletConfig));
+   beanFactory.ignoreDependencyInterface(ServletContextAware.class);
+   beanFactory.ignoreDependencyInterface(ServletConfigAware.class);
+
+   WebApplicationContextUtils.registerWebApplicationScopes(beanFactory, this.servletContext);
+   WebApplicationContextUtils.registerEnvironmentBeans(beanFactory, this.servletContext, this.servletConfig);
+}
+```
+
+## BeanDefinitionRegisterPostProcessor
+
+## BeanFactoryPostProcessor
+
