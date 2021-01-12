@@ -38,9 +38,9 @@ Redo Log和undo Log，从Mysql架构图来看，属于存储引擎，只有InnoD
 
 ##### Redo Log
 
-Redo Log指的是在事务中对任何数据的操作，都将最新的数据备份到Redo log日志文件中，是为了**实现事务的持久性**而出现的产物。
+Redo Log指的是在事务中对任何数据的操作，都将最新的数据写到Redo log日志文件中，是为了**实现事务的持久性**而出现的产物。
 
-当系统崩溃重启后，可以根据Redo Log的内容，将所有数据恢复到最新状态。
+Redo Log是固定大小的，是循环写的过程；当系统崩溃重启后，可以根据Redo Log的内容，将所有数据恢复到最新状态。
 
 数据写入流程如下：
 
@@ -48,9 +48,35 @@ Redo Log指的是在事务中对任何数据的操作，都将最新的数据备
 
 上图实际展示了三种写入策略，可以通过设置**innodb_flush_log_at_trx_commit**参数来调整，InnoDB中默认innodb_flush_log_at_trx_commit=1
 
+**<span style="color:#FF0033">Redo Log的两阶段提交</span>**
+
+数据更新流程：
+
+![](./res/mysql写入数据流程.png)
+
+为什么Redo Log会有两阶段提交？
+
+<span style="color:#FF0033">保证数据的一致性</span>
+
++ 先写redo log后写binlog
+
+  假设在redo log写完， binlog还没有写完的时候， MySQL进程
+  异常重启。由于我们前面说过的， redo log写完之后，系统即使崩溃，仍然能够把数据恢复
+  回来，所以恢复后这一行c的值是1。但是由于binlog没写完就crash了，这时候binlog里面
+  就没有记录这个语句。因此，之后备份日志的时候，存起来的binlog里面就没有这条语句。
+  然后你会发现，如果需要用这个binlog来恢复临时库的话，由于这个语句的binlog丢失，这
+  个临时库就会少了这一次更新，恢复出来的这一行c的值就是0，与原库的值不同。
+
++ 先写binlog后写redo log
+
+  如果在binlog写完之后crash，由于redo log还没写，崩溃恢复
+  以后这个事务无效，所以这一行c的值是0。但是binlog里面已经记录了“把c从0改成1”这个
+  日志。所以，在之后用binlog来恢复的时候就多了一个事务出来，恢复出来的这一行c的值
+  就是1，与原库的值不同。
+
 ##### undo Log
 
-undo Log指的是事务开始前，在操作任何数据之前，首先将要操作的数据备份到undo Log中，是为了**实现事务的原子性**，在InnoDB中undo Log还用来实现多版本并发控制（简称：MVCC）。
+undo Log指的是事务开始前，在操作任何数据之前，首先将要操作的数据备份到undo Log中，是为了**实现事务的原子性**（也叫做回滚日志），在InnoDB中undo Log还用来实现多版本并发控制（简称：MVCC）。
 
 **undo Log是逻辑日志，可以理解为：**
 
@@ -70,7 +96,7 @@ undo Log指的是事务开始前，在操作任何数据之前，首先将要操
 
 + 隔离性(Isolation)
 
-  并发执行的事务不会相互影响，对数据库的影响和他们串行执行时一样
+  并发执行的事务不会相互影响，对数据库的影响和他们串行执行时一样，<span style="color:red">通过锁机制保障</span>
 
 + 持久性(Durability)
 
@@ -84,12 +110,12 @@ undo Log指的是事务开始前，在操作任何数据之前，首先将要操
 
 具体的隔离级别，从低到高依次是：
 
-+ 读未提交（READ UNCOMMITTED） 对事物的读取没有任何限制，不推荐
++ 读未提交（READ UNCOMMITTED） 对事物的读取没有任何限制，<span >不推荐</span>
 + 读已提交（READ COMMITTED）
 + 可重复读（REPEATABLE READ）
 + 串行化（SERIALIZABLE） 性能最低
 
-mysql默认使用的是可重复读，orcoal默认使用的是读已提交
+mysql默认使用的是可重复读，oracle默认使用的是读已提交
 
 对于不同的事务级别，会导致不同的问题
 
@@ -123,6 +149,10 @@ global：全局设置
 + 3NF：非主键字段不能相互依赖
 
 ### 一些命令
+
++ show variables like '%%'
+
+  查看一下参数
 
 + SHOW PROFILES;
 
@@ -254,4 +284,155 @@ mysql中对于时间类型有：date、time、datetime、timestamp等类型。�
 对于mysql字符集的选择，这儿主要针对UTF-8做下补充，标准的UTF-8字符集编码是可以用1-4个字节去编码21位字符，只支持Unicode中 [基本多文本平面](https://zh.wikipedia.org/wiki/Unicode字符平面映射)（U 0000至U FFFF），有部分内容不支持。
 
 mysql 5.5.3之后，增加了utf8mb4,是utf8的超集，能够使用4个字节存储更多的字符。参考，https://blog.csdn.net/qq_17555933/article/details/101445526
+
+## 执行计划
+
+[单独文件，点击查看详情](./mysql执行计划.md)
+
+## 索引优化
+
+通过给字段添加索引可以提高数据的读取速度，提高项目的并发能力和抗压能力，
+
+合理使用索引有如下优点：
+
++ 大大减少服务器需要扫描的数据
++ 帮助服务器避免排序和临时表
++ 将随机io变成顺序io
+
+下面了解mysql中索引的结构。
+
+InnoDB中，索引为什么不使用hash表？
+
++ 利用hash存储的话，需要将所有的数据文件添加到内存中，比较消耗内存空间
++ 如果所有的查询都是等值查询，那么hash表确实会比较快，但是实际工作中有许多范围查找，而不是等值查询，这时候hash就不适合了
+
+为什么是B+tree，而不是二叉树或者平衡二叉树、红黑树
+
++ 二叉树可能出现长短腿，导致树很深
+
++ 平衡二叉树
+
+  AVL树是一颗严格意义上的平衡树，最高子树和最低子树高度差不能超过1，因此在进行元素插入时，会进行1到N次的旋转操作，严重影响插入的性能，同时也会导致树很深
+
++ 红黑树
+
+  红黑树是基于AVL树的一个升级，损失部分查询的性能，来提升插入的性能，在红黑树中最低子树和最高子树之差小于2倍即可，在插入的时候不需要进行N多次的旋转操作，而且加入变色的特性，来满足插入和查询性能的平衡，同时也会导致树很深
+
+总结：<span style="color:red;">二叉树及其N多变种都不能支撑索引，原因是树的深度无法控制或者插入数据的性能比较低</span>
+
+### B+Tree
+
+B+Tree是在BTree的基础上做的一种优化，变化如下：
+
++ B+Tree每个节点可以包含更多的节点，这样做的原因有两个：
+  + 降低树的高度
+  + 将数据范围变为多个区间，区间越多，数据检索速度越快
++ 非叶子节点存储Key，叶子节点存储key和数据
++ 叶子节点两两指针相互连接（符合磁盘的预读特性），顺序查询性能更高
+
+B+Tree结构如下：
+
+![](./res/B+Tree结构.png)
+
+**说明：**
+
+在B+Tree上有两个头指针，一个指向根节点，另一个指向关键字最小的叶子节点，而且所有叶子节点之间，是一种环形链式结构，因此可以对B+Tree进行两种查找运算：
+
++ 对于主键的范围查找和分页查找
++ 另一种是从根节点开始进行随机查找
+
+**总结：**
+
++ InnoDB是通过B+Tree结构对主键创建索引，然后叶子节点中存储数据，如果没有主键会选择唯一键，如果没有唯一键，那么会生成一个6位的row_id来作为主键（row_id不可见）
++ 如果创建索引的键是其他字段，那么在叶子节点中存放是的该数据的主键，然后再通过主键索引找到对应的记录，这个叫做回表
+
+### 索引分类
+
++ 主键索引
+
+  主键索引是一种唯一性索引，但它必须指定为PRIMARY KEY，每个表只能有一个主键索引。主键建议采用<span style="color:red">自增的数据类型</span>，这样在插入数据的时候只需要在B+Tree上追加数据。如果采用UUID等乱序的字符串作为主键，会导致一些问题：<span style="color:#FF0033">页分裂</span>、<span style="color:#FF0033">页合并</span>、<span style="color:#FF0033">空间浪费</span>等。
+
++ 唯一索引
+
+  索引列必须唯一，可以为空；
+
+  将一个字段设置为唯一,mysql会自动帮忙建一个唯一性索引
+
+  ```mysql
+  `username` varchar(18) NOT NULL unique,
+  ```
+
+  强调：
+
+  + <span style="color:#FF0033">当字段没有设置为唯一，但是业务上是唯一时，在建索引时，需要考虑是建一个唯一索引，还是普通索引</span>
+  + <span style="color:#FF0033">唯一性索引不会有回表操作</span>
+
++ 普通索引
+
+  基本的索引类型，值可以为空，没有唯一性的限制（<span style="color:#FF0033">覆盖索引</span>）
+
+  什么是覆盖索引？
+
+  覆盖索引是对普通索引一个常见的优化，当使用普通索引查询数据时，会有回表操作，会遍历两个索引数（先通过name索引树找到id，然后通过主键索引树找到具体的数据），如下sql：
+
+  ```mysql
+  select * from use where usename='张三';
+  ```
+
+  如果具体业务上，只需要id字段的数据，那么查询sql可以修改为：
+
+  ```mysql
+  select id from use where usename='张三';
+  ```
+
+  这种情况下，就只会遍历name的索引树，只会遍历一个索引树，效率会有所提高，这就是覆盖索引。
+
++ 全文索引
+
+  全文索引的类型为FULLTEXT，全文索引可以在varchar、char、text类型上创建
+
++ 组合索引
+
+  多列值组成一个索引，专门用于组合搜索，在建组合索引的时候顺序很重要（<span style="color:#FF0033">最左匹配原则-最左前缀、索引下推</span>）
+
+  索引下推（5.6+），联合索引（name+age）
+
+  ```mysql
+  select * from user where name='张三' and age = 10
+  ```
+
+  在第一次遍历索引树的时候就会把age条件一起过滤了，最后返回的主键就是满足条件的
+
+### 索引匹配方式
+
+#### 全值匹配
+
+全值匹配指的是和索引中的所有列进行匹配，如下：
+
+```mysql
+-- 创建表
+CREATE TABLE staffs (
+	id INT(11) not NULL AUTO_INCREMENT,
+	`name` varchar(50) NOT NULL COMMENT '姓名',
+	`age` INT(11) NOT NULL COMMENT '年龄',
+	`pos` VARCHAR(20) NOT NULL COMMENT '职位',
+	`add_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '入职时间',
+	PRIMARY KEY (`id`)
+)ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT '员工记录表';
+-- 创建组合索引
+ALTER table staffs ADD INDEX idx_nap(`name`,`age`,`pos`);
+-- 插入数据
+INSERT INTO `staffs` (`id`, `name`, `age`, `pos`, `add_time`) VALUES ('1', '张三', '26', 'java开发', '2021-01-12 17:10:41');
+INSERT INTO `staffs` (`id`, `name`, `age`, `pos`, `add_time`) VALUES ('2', '李四', '28', 'java架构师', '2021-01-12 17:11:01');
+-- 查看执行计划
+explain select * from staffs where name = '张三' and age = '26' and pos = 'java开发';
+```
+
+查看执行计划得到的结果如下：
+
+| id   | select_type | table  | type | possible_keys | key     | key_len | ref               | rows | Extra                 |
+| ---- | ----------- | ------ | ---- | ------------- | ------- | ------- | ----------------- | ---- | --------------------- |
+| 1    | SIMPLE      | staffs | ref  | idx_nap       | idx_nap | 288     | const,const,const | 1    | Using index condition |
+
+说明：Extra的值是Using index condition，意思是查询使用了索引，但是使用了回表查询数据
 
