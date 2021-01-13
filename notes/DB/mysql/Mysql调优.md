@@ -291,6 +291,8 @@ mysql 5.5.3之后，增加了utf8mb4,是utf8的超集，能够使用4个字节�
 
 ## 索引优化
 
+### 索引简介
+
 通过给字段添加索引可以提高数据的读取速度，提高项目的并发能力和抗压能力，
 
 合理使用索引有如下优点：
@@ -344,7 +346,20 @@ B+Tree结构如下：
 **总结：**
 
 + InnoDB是通过B+Tree结构对主键创建索引，然后叶子节点中存储数据，如果没有主键会选择唯一键，如果没有唯一键，那么会生成一个6位的row_id来作为主键（row_id不可见）
-+ 如果创建索引的键是其他字段，那么在叶子节点中存放是的该数据的主键，然后再通过主键索引找到对应的记录，这个叫做回表
++ 如果创建索引的键是其他字段，那么在叶子节点中存放是的该数据的主键，然后再通过主键索引找到对应的记录，这个叫做<span style="color:#FF0033">回表</span>
+
+### hash索引
+
+基于哈希表的实现，只有精确匹配索引所有列的查询才有效，在mysql中只有memory存储引擎显示支持哈市索引。哈希索引自身只需存储对应的hash值，所以索引的结构十分紧凑，这让哈希索引查找的速度非常快。
+
+哈希索引的限制：
+
++ 哈希索引只包含哈希值和指针，而存储数据，所以必须要读取行
++ 哈希索引数据并不是按照索引值得属性存储的，所以无法进行排序
++ 哈希索引不支持部分列匹配查找，哈希索引是使用索引的全部内容来计算哈希值的
++ 哈希索引支持等值比较查询，不支持任何返回查询和模糊查询
++ 访问哈希索引的数据非常快，除非有很多哈希冲突（哈希冲突会采用链表的方式来解决，存储引擎需要遍历链表）
++ 哈希冲突比较多的话，维护的代价也很高
 
 ### 索引分类
 
@@ -354,19 +369,17 @@ B+Tree结构如下：
 
 + 唯一索引
 
-  索引列必须唯一，可以为空；
-
-  将一个字段设置为唯一,mysql会自动帮忙建一个唯一性索引
+  索引列必须唯一，可以为空；将一个字段设置为唯一,mysql会自动帮忙建一个唯一性索引
 
   ```mysql
-  `username` varchar(18) NOT NULL unique,
+`username` varchar(18) NOT NULL unique,
   ```
-
+  
   强调：
 
   + <span style="color:#FF0033">当字段没有设置为唯一，但是业务上是唯一时，在建索引时，需要考虑是建一个唯一索引，还是普通索引</span>
-  + <span style="color:#FF0033">唯一性索引不会有回表操作</span>
-
++ <span style="color:#FF0033">唯一性索引不会有回表操作</span>,经过操作证明是这样的，但是我在navcat中修改索引类型却不起作用
+  
 + 普通索引
 
   基本的索引类型，值可以为空，没有唯一性的限制（<span style="color:#FF0033">覆盖索引</span>）
@@ -385,7 +398,7 @@ B+Tree结构如下：
   select id from use where usename='张三';
   ```
 
-  这种情况下，就只会遍历name的索引树，只会遍历一个索引树，效率会有所提高，这就是覆盖索引。
+  这种情况下，如果只查询索引列，就只会遍历name的索引树，只会遍历一个索引树，效率会有所提高，这就是覆盖索引。
 
 + 全文索引
 
@@ -395,7 +408,7 @@ B+Tree结构如下：
 
   多列值组成一个索引，专门用于组合搜索，在建组合索引的时候顺序很重要（<span style="color:#FF0033">最左匹配原则-最左前缀、索引下推</span>）
 
-  索引下推（5.6+），联合索引（name+age）
+  索引下推（5.6+），组合索引（name+age）
 
   ```mysql
   select * from user where name='张三' and age = 10
@@ -405,7 +418,7 @@ B+Tree结构如下：
 
 ### 索引匹配方式
 
-#### 全值匹配
++ 全值匹配
 
 全值匹配指的是和索引中的所有列进行匹配，如下：
 
@@ -436,3 +449,99 @@ explain select * from staffs where name = '张三' and age = '26' and pos = 'jav
 
 说明：Extra的值是Using index condition，意思是查询使用了索引，但是使用了回表查询数据
 
++ 最左匹配
+
+```mysql
+explain select * from staffs where name = '张三';
+```
+
+这种情况下也是能使用到组合索引idx_nap的，执行结果如下：
+
+| id   | select_type | table  | type | possible_keys | key     | key_len | ref   | rows | Extra                 |
+| ---- | ----------- | ------ | ---- | ------------- | ------- | ------- | ----- | ---- | --------------------- |
+| 1    | SIMPLE      | staffs | ref  | idx_nap       | idx_nap | 202     | const | 1    | Using index condition |
+
+这种情况就没法使用索引
+
+```mysql
+explain select * from staffs where  age = '26' and pos = 'java开发';
+```
+
++ 匹配列前缀
+
+```mysql
+explain select * from staffs where name like '张%';
+```
+
+这种情况也是会使用索引的，运行结果如下：
+
+| id   | select_type | table  | type  | possible_keys | key     | key_len | ref  | rows | Extra                 |
+| ---- | ----------- | ------ | ----- | ------------- | ------- | ------- | ---- | ---- | --------------------- |
+| 1    | SIMPLE      | staffs | range | idx_nap       | idx_nap | 202     | null | 1    | Using index condition |
+
+索引失效的情况，
+
+```mysql
+explain select * from staffs where name like '%张%';
+```
+
++ 匹配范围值
+
+```mysql
+explain select * from staffs where name > '张三';
+```
+
+这种情况也会使用索引，使用范围判断后面的判断的索引都会失效
+
++ 精确匹配一列，范围匹配另一列
+
+```mysql
+explain select * from staffs where name = '张三' and age >10;
+```
+
+这种情况也会使用索引，非组合索引也是一样的
+
++ 只访问索引的查询
+
+查询的时候只需要访问索引，不需要访问其他数据行，本质上就是覆盖索引
+
+### 优化小细节
+
++ 当使用索引列进行查询的时候尽量不要使用表达式，把计算放到业务层而不是数据库层
+
++ 尽量使用主键查询，而不是其他索引，因为主键查询不会触发回表操作
+
++ 使用前缀索引(索引选择性)
+
+  如果一个字段比较大（内容比较多），可以通过使用前几个字符来建立索引
+
++ <span style="color:#FF0033">使用索引扫描来排序</span>
+
++ union all、in、or都能够使用索引，<span style="color:#FF0033">但是推荐使用in</span>
+
++ 范围列可以用到索引
+
+  范围条件是：<、<=、>、>=、between，<span style="color:#FF0033">索引最多用于一个范围列，后面的列都无法用到索引</span>
+
++ <span style="color:#FF0033">强制类型转换会导致全表扫描</span>
+
++ 更新十分频繁，数据区分度不高的字段上不宜建索引
+
++ <span style="color:#FF0033">创建索引的列，不允许null</span>，不然可能会得到不符合预期的结果
+
++ 当需要进行表连接查询的时候，<span style="color:#FF0033">最好不要超过三张表，join的字段，数据类型必须一致</span>
+
++ 能使用limit的时候，<span style="color:#FF0033">尽量使用limit</span>
+
++ 单表索引建议控制在5个以内
+
++ 单个组合索引，字段数不允许超过5个
+
++ 创建索引的时候应该避免以下错误概念：
+
+  + 索引越多越好
+  + 过早优化，在不了解系统的情况下进行优化
+
++ <span style="color:#FF0033">使用函数索引会失效</span>,比如：where month(t_modified)=7 ，数据库引擎必须的把每列都month过后才能判断是否等于7
+
+  
