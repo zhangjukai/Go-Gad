@@ -535,6 +535,8 @@ explain select * from staffs where name = '张三' and age >10;
 
 + 当需要进行表连接查询的时候，<span style="color:#FF0033">最好不要超过三张表，join的字段，数据类型必须一致</span>
 
+  详细的优化过程，见[mysql-join优化过程](./mysql-join优化过程.md)
+
 + 能使用limit的时候，<span style="color:#FF0033">尽量使用limit</span>
 
 + 单表索引建议控制在5个以内
@@ -601,3 +603,20 @@ show status like 'Handler_read%';
 + Handler_read_rnd_next
 
   读取数据文件下一行的请求数。如果要进行大量表扫描，则此值较高。通常，这表明您的表未正确建立索引，或者未编写查询来利用您拥有的索引。
+
+## 查询优化
+
+### 查询慢的原因
+
++ 网络
++ CPU
++ IO
++ 上下文切换
++ 系统调用
++ 生成统计信息
++ 锁等待时间
+
+### 优化数据访问
+
++ 减少访问数据量的方式进行优化
++ 判断是否向数据库请求了不需要的数据
