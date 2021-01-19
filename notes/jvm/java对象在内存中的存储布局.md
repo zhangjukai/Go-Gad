@@ -69,7 +69,12 @@ Mark Word总共8个字节64位，与之对应的二进制码如下图：
 
 ![](./res/markword-bt.png)
 
-对于markword中64位如何变化的，此处我们不做关注，在Synchronized优化锁升级的过程中再做详细的分析
+对于markword中64位如何变化的，此处我们不做关注，在Synchronized优化锁升级的过程中再做详细的分析。
+
+另外补充两点：
+
++ IdentityHashCode的问题，当一个对象计算过identityHashCode之后，不能进入偏向锁状态。
++ 对象定位（对象访问），句柄池和直接指针，Hotspot使用的是直接指针
 
 ### JVM相关参数查看
 

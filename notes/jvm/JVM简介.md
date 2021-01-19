@@ -48,8 +48,16 @@ JDK内容：
 + Loading
 + Linking
   + Verification-校验
-  + Preparation-静态变量赋默认值
-  + Resolution
+  
+    验证文件是否符合JVM规范
+  
+  + Preparation-准备，预备
+  
+    静态变量赋默认值
+  
+  + Resolution-解析
+  
+    将类、方法、属性等符号引用解析为直接引用，常量池中的各种符号引用解析为指针，偏移量等内存地址的直接引用
 + Initialzing-初始化
 
 ### 类加载器
@@ -59,6 +67,10 @@ JDK内容：
 为什么会有双亲委派机制？
 
 主要为了安全，
+
+如何打破双亲委派机制？
+
+重写loadClass方法
 
 ### 编译器
 
