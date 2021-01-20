@@ -156,7 +156,7 @@ public class User {
 按同样的方式输出结果如下：
 
 com.zjk.hy.se.User object internals:
- OFFSET  SIZE               TYPE DESCRIPTION                               VALUE
+ OFFSET  SIZE           TYPE DESCRIPTION                               VALUE
       0     4                    (object header)                           01 00 00 00 (00000001 00000000 00000000 00000000) (1)
       4     4                    (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)
       8     4                    (object header)                           43 c1 00 f8 (01000011 11000001 00000000 11111000) 
