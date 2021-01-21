@@ -77,9 +77,13 @@ JDK内容：
 
 + -Xmixed 混合模式（默认）
 + -Xint 使用解释模式，启动很快，执行稍慢
-+ -Xcomp，使用存编译模式，执行很快，启动很慢
++ -Xcomp，使用纯编译模式，执行很快，启动很慢
 
 ### JVM Runtime Data  Area( 运行时数据区)
+
+![](./res/JVM Runtime Data Area.png)
+
+
 
 #### PC 程序计数器
 
@@ -179,9 +183,11 @@ public class Test01 {
 
 #### Direct Memory
 
-JVM可以直接访问的内核空间的内存（OS管理的内存）
+堆外内存，JVM可以直接访问的内核空间的内存（OS管理的内存），JDK1.5之后可以通过未公开的unsafe和NIO包下的ByteBuffer操作堆外内存
 
 NIO，提高效率，实现zero copy
+
+
 
 ### JVM Instructions (JVM指令集)
 
@@ -233,7 +239,7 @@ NIO，提高效率，实现zero copy
 
   算法相对简单，存活对象比较多的情况下效率较高
 
-+ 拷贝算法（coping）
++ 拷贝（复制）算法（coping）
 
   适用于存活对象较少的情况，只扫描一次，效率提高，没有碎片；
 
@@ -266,7 +272,7 @@ NIO，提高效率，实现zero copy
   + 字符串常量 1.7永久代，1.8堆空间
   + MethodArea是JVM规范，一个逻辑概念，其具体实现是永久代、元空间
 
-+ 新生代=Eden+2个suvivor区
++ 新生代=Eden+2个survivor区
 
   + YGC回收之后，大多数对象会被回收，活着的进入s0
   + 再次YGC，活着的对象eden+s0 -> s1
@@ -331,15 +337,15 @@ JDK诞生时就有了Serial，为了提高效率诞生了Parallel Scavenge；jDK
 
 + Serial 年轻代 串行回收
 
-+ Parallel Scavenge 年轻代 并行回收
++ Parallel Scavenge 年轻代 <span style="color:red">并行回收</span>
 
 + ParNew 年轻代  配合CMS的并行回收器
 
-+ SerialOld
++ Serial Old 
 
 + ParallelOld
 
-+ Concurrent MarkSweep 老年代 并发的，垃圾回收和应用程序同时运行，降低STW的时间（200ms）
++ Concurrent MarkSweep 老年代 <span style="color:red">并发</span>的，垃圾回收和应用程序同时运行，降低STW的时间（200ms）
 
   要使用CMS只能手动指定，CMS既然是MarkSweep，就一定会有碎片化的问题，碎片达到一定程度，CMS的老年代分配不下对象时，使用SerialOld进行老年代回收
 
@@ -370,11 +376,29 @@ JDK诞生时就有了Serial，为了提高效率诞生了Parallel Scavenge；jDK
 
 JDK1.8默认的垃圾回收器是Parallel Scavenge+ParallelOld
 
+#### 常见垃圾回收器组合参数设定（JDK1.8）
 
++ -XX:+UseSerialGC 
 
+  等同于Serial New+Serial Old；适用于小型程序，默认情况下不会是这种选项，HotSpot会根据计算机以及配置和JDK版本自动选择收集器
 
++ -XX:+UseParNewGC
 
+  =ParNew+SerialOld；这个组合已经很少用了，在某些版本中已经废弃，JDK9废除了这个指令
 
++ -XX:+UseConcMarkSweepGC = ParNew + CMS + Serial Old
++ -XX:+UseParallelGC = Parallel Scavenge + Parallel Old（1.8默认）【PS+SerialOld】
++ -XX:+UseParallelOldGC =  Parallel Scavenge + Parallel Old
++ -XX:+UseG1GC = G1
+
+* Linux中没找到默认GC的查看方法，而windows中会打印UseParallelGC 
+  * java +XX:+PrintCommandLineFlags -version
+  * 通过GC的日志来分辨
+
+* Linux下1.8版本默认的垃圾回收器到底是什么？
+
+  * 1.8.0_181 默认（看不出来）Copy MarkCompact
+  * 1.8.0_222 默认 PS + PO
 
 
 
