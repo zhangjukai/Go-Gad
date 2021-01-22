@@ -183,11 +183,9 @@ public class Test01 {
 
 #### Direct Memory
 
-堆外内存，JVM可以直接访问的内核空间的内存（OS管理的内存），JDK1.5之后可以通过未公开的unsafe和NIO包下的ByteBuffer操作堆外内存
+直接内存(堆外内存)，JVM可以直接访问的内核空间的内存（OS管理的内存），JDK1.5之后可以通过未公开的unsafe和NIO包下的ByteBuffer操作堆外内存
 
 NIO，提高效率，实现zero copy
-
-
 
 ### JVM Instructions (JVM指令集)
 
@@ -366,6 +364,10 @@ JDK诞生时就有了Serial，为了提高效率诞生了Parallel Scavenge；jDK
 + PS 和 PN区别的延伸阅读：
   https://docs.oracle.com/en/java/javase/13/gctuning/ergonomics.html
 
+<span style="color:red">JDK8默认使用的是parallel Scavenge+Serial Old</span>
+
+<span style="color:red">JDK14默认使用的是G1</span>
+
 #### 垃圾回收器跟内存大小的关系
 
 + Serial 几十兆
@@ -400,23 +402,294 @@ JDK1.8默认的垃圾回收器是Parallel Scavenge+ParallelOld
   * 1.8.0_181 默认（看不出来）Copy MarkCompact
   * 1.8.0_222 默认 PS + PO
 
+### JVM调优
 
+#### JVM常用命令行参数
 
+命令行参数参考：https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
 
+HotSpot参数分类：
 
++ 标准：-开头，所有的HotSpot都支持
++ 非标准：-X开头，特定版本HotSpot支持的特定命令
++ 不稳定：-XX开头，下个版本可能取消
 
+memory leak：内存泄漏
 
+out of memory：内存溢出
 
+#### 示例演示
 
+```java
+import java.util.List;
+import java.util.LinkedList;
 
+public class HelloGC {
+    public static void main(String[] args) {
+        System.out.println("HelloGC!");
+        List list = new LinkedList();
+        for(;;) {
+            byte[] b = new byte[1024*1024];
+            list.add(b);
+        }
+    }
+}
+```
 
++ 打印jvm默认配置信息
 
+  参数：-XX:+PrintCommandLineFlags 
 
+  JDK1.8-jvm参数：
 
+  > -XX:InitialHeapSize=67100544 
+  >
+  > -XX:MaxHeapSize=1073608704 
+  >
+  > -XX:+PrintCommandLineFlags 
+  >
+  > -XX:+UseCompressedClassPointers 
+  >
+  > -XX:+UseCompressedOops 
+  >
+  > -XX:-UseLargePagesIndividualAllocation 
+  >
+  > -XX:+UseParallelGC 
 
+  JDK14-jvm参数：
 
+  > // 并发优化线程(Remenbered Set)数量
+  >
+  > -XX:G1ConcRefinementThreads=4 
+  >
+  > -XX:GCDrainStackTargetSize=64 
+  >
+  > -XX:InitialHeapSize=67100544 
+  >
+  > -XX:MaxHeapSize=1073608704 
+  >
+  > -XX:MinHeapSize=6815736 
+  >
+  > -XX:+PrintCommandLineFlags 
+  >
+  > -XX:ReservedCodeCacheSize=251658240 
+  >
+  > -XX:+SegmentedCodeCache 
+  >
+  > -XX:+UseCompressedClassPointers 
+  >
+  > -XX:+UseCompressedOops 
+  >
+  > -XX:+UseG1GC 
+  >
+  > -XX:-UseLargePagesIndividualAllocation
 
++ 设置堆大小
 
+  参数：-Xmn10M -Xms40M -Xmx60M -XX:+PrintCommandLineFlags -XX:+PrintGC
+
+  JDK1.8-jvm参数：
+
+  > -XX:InitialHeapSize=41943040 
+  >
+  > -XX:MaxHeapSize=62914560 
+  >
+  > -XX:MaxNewSize=10485760 
+  >
+  > -XX:NewSize=10485760 
+  >
+  > -XX:+PrintCommandLineFlags 
+  >
+  > -XX:+PrintGC 
+  >
+  > -XX:+UseCompressedClassPointers 
+  >
+  > -XX:+UseCompressedOops 
+  >
+  > -XX:-UseLargePagesIndividualAllocation 
+  >
+  > -XX:+UseParallelGC
+
+  Parallel Scavenge+Serial Old的GC日志：
+
+  > [GC (Allocation Failure)  7840K->5397K(39936K), 0.0071157 secs]
+  > [GC (Allocation Failure)  12722K->12598K(39936K), 0.0107224 secs]
+  > [GC (Allocation Failure)  19917K->19766K(39936K), 0.0197214 secs]
+  > [GC (Allocation Failure)  27172K->26933K(39936K), 0.0096329 secs]
+  > [Full GC (Ergonomics)  26933K->26575K(53248K), 0.0179287 secs]
+  > [GC (Allocation Failure)  33954K->33839K(52736K), 0.0098533 secs]
+  > [GC (Allocation Failure)  41356K->41040K(49664K), 0.0090939 secs]
+  > [Full GC (Ergonomics)  41040K->40886K(56832K), 0.0241719 secs]
+  > [GC (Allocation Failure)  44116K->44054K(58368K), 0.0041669 secs]
+  > [Full GC (Ergonomics)  44054K->43959K(58368K), 0.0161410 secs]
+  > [GC (Allocation Failure)  47155K->47095K(58368K), 0.0065456 secs]
+  > [Full GC (Ergonomics)  47095K->47036K(58368K), 0.0134711 secs]
+  > [GC (Allocation Failure)  50204K->50204K(58368K), 0.0028560 secs]
+  > [Full GC (Ergonomics)  50204K->50110K(58368K), 0.0162234 secs]
+  > [Full GC (Ergonomics)  53263K->53182K(58368K), 0.0147719 secs]
+  > [Full GC (Ergonomics)  54254K->54231K(58368K), 0.0145046 secs]
+  > [Full GC (Allocation Failure)  54231K->54212K(58368K), 0.0339220 secs]
+
+  日志说明：
+
+  ![](./res/PSGCLog.png)
+
+  
+
+  对空间dump信息：
+
+  > Heap
+  >  PSYoungGen      total 7168K, used 3255K [0x00000000ff600000, 0x0000000100000000, 0x0000000100000000)
+  >   eden space 4096K, 79% used [0x00000000ff600000,0x00000000ff92de08,0x00000000ffa00000)
+  >   from space 3072K, 0% used [0x00000000ffa00000,0x00000000ffa00000,0x00000000ffd00000)
+  >   to   space 3072K, 0% used [0x00000000ffd00000,0x00000000ffd00000,0x0000000100000000)
+  >  ParOldGen       total 51200K, used 51165K [0x00000000fc400000, 0x00000000ff600000, 0x00000000ff600000)
+  >   object space 51200K, 99% used [0x00000000fc400000,0x00000000ff5f77d8,0x00000000ff600000)
+  >  Metaspace       used 3668K, capacity 4536K, committed 4864K, reserved 1056768K
+  >   class space    used 397K, capacity 428K, committed 512K, reserved 1048576K
+
+  ![](./res/PSGCDumpInfo.png)
+
+  JDK14-jvm参数：
+
+  > -XX:G1ConcRefinementThreads=4 
+  >
+  > -XX:GCDrainStackTargetSize=64 
+  >
+  > -XX:InitialHeapSize=41943040 
+  >
+  > -XX:MaxHeapSize=62914560 
+  >
+  > -XX:MaxNewSize=10485760 
+  >
+  > -XX:MinHeapSize=41943040 
+  >
+  > -XX:NewSize=10485760 
+  >
+  > -XX:+PrintCommandLineFlags 
+  >
+  > -XX:+PrintGC 
+  >
+  > -XX:ReservedCodeCacheSize=251658240 
+  >
+  > -XX:+SegmentedCodeCache 
+  >
+  > -XX:+UseCompressedClassPointers 
+  >
+  > -XX:+UseCompressedOops 
+  >
+  > -XX:+UseG1GC 
+  >
+  > -XX:-UseLargePagesIndividualAllocation
+
+G1GC日志信息：
+
+> [0.025s][info ][gc] Using G1
+> [0.077s][info ][gc] Periodic GC disabled
+> HelloGC!
+> [0.363s][info ][gc] GC(0) Pause Young (Concurrent Start) (G1 Humongous Allocation) 24M->22M(40M) 9.236ms
+> [0.363s][info ][gc] GC(1) Concurrent Cycle
+> [0.370s][info ][gc] GC(1) Pause Remark 30M->30M(54M) 0.879ms
+> [0.399s][info ][gc] GC(1) Pause Cleanup 40M->40M(54M) 0.066ms
+> [0.402s][info ][gc] GC(1) Concurrent Cycle 39.154ms
+> [0.407s][info ][gc] GC(2) Pause Young (Concurrent Start) (G1 Humongous Allocation) 44M->44M(54M) 3.643ms
+> [0.407s][info ][gc] GC(3) Concurrent Cycle
+> [0.412s][info ][gc] GC(3) Pause Remark 56M->56M(60M) 0.905ms
+> [0.417s][info ][gc] GC(4) Pause Young (Normal) (G1 Humongous Allocation) 56M->56M(60M) 1.744ms
+> [0.419s][info ][gc] GC(5) Pause Young (Normal) (G1 Evacuation Pause) 58M->58M(60M) 1.280ms
+> [0.422s][info ][gc] GC(3) Pause Cleanup 58M->58M(60M) 0.063ms
+> [0.424s][info ][gc] GC(6) Pause Young (Normal) (G1 Humongous Allocation) 58M->58M(60M) 1.200ms
+> [0.430s][info ][gc] GC(7) Pause Full (G1 Humongous Allocation) 58M->57M(60M) 5.517ms
+> [0.430s][info ][gc] GC(3) Concurrent Cycle 22.943ms
+> [0.431s][info ][gc] GC(8) Pause Young (Normal) (G1 Evacuation Pause) 59M->59M(60M) 0.596ms
+> [0.436s][info ][gc] GC(9) Pause Full (G1 Evacuation Pause) 59M->59M(60M) 5.520ms
+> [0.441s][info ][gc] GC(10) Pause Full (G1 Evacuation Pause) 59M->59M(60M) 4.591ms
+> [0.442s][info ][gc] GC(11) Pause Young (Concurrent Start) (G1 Evacuation Pause) 59M->59M(60M) 0.619ms
+> [0.442s][info ][gc] GC(13) Concurrent Cycle
+> [0.448s][info ][gc] GC(12) Pause Full (G1 Evacuation Pause) 59M->59M(60M) 5.730ms
+> [0.452s][info ][gc] GC(14) Pause Full (G1 Evacuation Pause) 59M->59M(60M) 4.380ms
+> [0.453s][info ][gc] GC(15) Pause Young (Normal) (G1 Evacuation Pause) 59M->59M(60M) 0.444ms
+> [0.458s][info ][gc] GC(16) Pause Full (G1 Evacuation Pause) 59M->59M(60M) 4.568ms
+> [0.463s][info ][gc] GC(17) Pause Full (G1 Evacuation Pause) 59M->59M(60M) 5.288ms
+> [0.467s][info ][gc] GC(18) Pause Young (Normal) (G1 Evacuation Pause) 59M->59M(60M) 3.423ms
+> [0.475s][info ][gc] GC(19) Pause Full (G1 Evacuation Pause) 59M->5M(40M) 8.073ms
+> [0.475s][info ][gc] GC(13) Concurrent Cycle 33.329ms
+
+#### 调优前的基础概念
+
++ 吞吐量
+
+  用户代码执行时间/(用户代码执行时间+垃圾回收时间)
+
++ 响应时间
+
+  STW越短，响应时间越好
+
+所谓调优，首先确定，追求啥，吞吐量优先，还会响应时间优先，还是在满足一定的响应时间的情况下，要求达到多大的吞吐量：
+
++ 吞吐量优先
+
+  科学计算、数据挖掘、thrput等，一般采用PS+PO
+
++ 响应时间
+
+  网站、GUI、API等，JDK1.8 推荐G1
+
+#### 什么是调优
+
++ 根据需求进行JVM规划和预调优
++ 优化运行JVM环境（慢、卡顿）
++ 解决JVM运行过程中出现的各种问题(OOM)
+
+#### 从规划开始
+
++ 从业务场景出发，要落实到具体的业务
+
++ 无监控，不调优（GC日志，压力测试等，调优前要能发现问题，调优后能看到效果）
+
++ 调优步骤：
+
+  + 熟悉业务步骤（没有最好的垃圾收集器，只有最合适的）
+
+    要求响应时间、停顿时间【CMS G1 ZGC】（需要给用户作响应）
+
+    要求吞吐量【PS】
+
+  + 选择垃圾回收器组合
+
+  + 计算内存需求（结合业务、经验值去估算，最后进行压测）
+
+  + 选定CPU（越高越好）
+
+  + 设定年代大小，升级年龄
+
+  + 设置日志参数
+
+    > -Xlogg /opt/xxx/logs/xxx-xxx-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause
+
+    日志文件不能搞成一个，可以按照日期规定文件大小，或者每天生产一个文件
+
+  + 观察日志情况
+
+#### 案例
+
++ 垂直电商，最高每日百万订单，处理订单系统需要什么样的服务器配置？
+
+  这个问题比较业余，因为很多不同的服务器配置都能支撑(1.5G 16G)，具体的思路是：判断每日高峰阶段，比如晚上8-10点间产生绝大部分订单，那么一个小时对应多少，从而计算出每秒的订单量；另外找高峰阶段的峰值，假如是1000订单/秒，因此需要考虑到这个峰值去设计，其实也是一个经验值。
+
+  如果非要计算：一个订单产生多少内存？512K*1000 = 500M 内存
+
+  专业一点的问法是：要求响应时间100ms
+
+  那么就需要根据设计好后，进行压测！
+
+  CPU的算率和实际内存大小有很大的关系
+
++ 12306大规模抢票应该如何支撑
+
+  12306应该是中国并发量最大的秒杀网站，号称并发量100W，今天双11，淘宝好像是45W
+
+  CDN-LVS-NGINX-业务系统-每台机器1w并发（单机10k问题），100台机器
 
 
 
