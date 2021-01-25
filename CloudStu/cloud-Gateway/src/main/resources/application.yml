@@ -1,0 +1,26 @@
+server:
+  port: 9527
+spring:
+  application:
+    name: cloud-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+      - id: cloud-provider-payment #路由的ID，没有固定规则但要求唯一，建议配合服务名
+        # uri: http://localhost:8001   #匹配后提供服务的路由地址
+        uri: lb://CLOUD-PROVIDER-PAYMENT
+        predicates:
+          - Path=/payment/**
+        filters:
+          - StripPrefix=1
+eureka:
+  instance:
+    hostname: cloud-gateway
+  client:
+    serviceUrl:
+      register-with-eureka: true
+      fetch-registry: true
+      defaultZone: http://127.0.0.1:8000/eureka/

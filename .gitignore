@@ -13,3 +13,5 @@
 /CloudStu/cloud-provider-payment/.idea
 /CloudStu/*.iml
 /CloudStu/cloud-provider-payment/*.iml
+/CloudStu/cloud-Gateway/target
+/CloudStu/cloud-Gateway/*.iml
