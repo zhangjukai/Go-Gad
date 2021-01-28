@@ -307,6 +307,8 @@ NIO，提高效率，实现zero copy
 
 TLAB—Thread Local Allocation Buffer
 
+并发场景中，解决如何安全地分配内存的一种方案，每个线程在Java堆中预先分配一小块内存，然后再给对象分配内存的时候，直接在自己这块"私有"内存中分配，当这部分区域用完之后，再分配新的"私有"内存。
+
 + 占用eden，默认1%
 + 多线程的时候不用竞争eden就可以申请空间，提高效率
 + 小对象
@@ -726,3 +728,326 @@ G1GC日志信息：
 
    jstat jvisualvm jprifiler arthas top
 
+## JVM 运行中的问题
+
+一般是运维团队首先收到报警信息（CPU Memory）
+
+### 认识常用工具
+
+#### 测试代码
+
+```java
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 从数据库中读取信用数据，套用模型，并把结果进行记录和传输
+ */
+
+public class FullGC_Problem01 {
+
+    private static class CardInfo {
+        BigDecimal price = new BigDecimal(0.0);
+        String name = "张三";
+        int age = 5;
+        Date birthdate = new Date();
+
+        public void m() {}
+    }
+
+    private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(50,
+            new ThreadPoolExecutor.DiscardOldestPolicy());
+
+    public static void main(String[] args) throws Exception {
+        executor.setMaximumPoolSize(50);
+
+        for (;;){
+            modelFit();
+            Thread.sleep(100);
+        }
+    }
+
+    private static void modelFit(){
+        List<CardInfo> taskList = getAllCardInfo();
+        taskList.forEach(info -> {
+            // do something
+            executor.scheduleWithFixedDelay(() -> {
+                //do sth with info
+                info.m();
+
+            }, 2, 3, TimeUnit.SECONDS);
+        });
+    }
+
+    private static List<CardInfo> getAllCardInfo(){
+        List<CardInfo> taskList = new ArrayList<>();
+
+        for (int i = 0; i < 100; i++) {
+            CardInfo ci = new CardInfo();
+            taskList.add(ci);
+        }
+
+        return taskList;
+    }
+}
+```
+
+#### 测试过程
+
++ 命令
+
+  > java -Xms200M -Xmx200M -XX:+PrintGC FullGC_Problem01
+
++ top命令，观察到：内存不断增长，CPU占用率居高不下
+
++ top -Hp PID(进程ID)，查看进程中线程的情况：哪个线程CPU和内存占用率高
+
++ jps定位具体java进程
+
+  jstack定位线程状态，重点关注：WAITINGBLOCKED
+
+  为什么阿里规范里规定，线程的名称，线程池的名称都要写有意义的名称
+
+  怎么样自定义线程池里的线程名称（自定义ThreadFactory）
+
+  
+
++ jinfo pid
+
++ jstate -gc 动态观察GC的情况，阅读GC日志（发现频繁GC）/arthas观察/jconsole/jvisualVM/Jprofiler(最好用)
+
+  jstat -gc 4655 500;每个500个毫秒打印GC的情况
+
+  怎么定位OOM问题？
+
+  + 已经上线的系统不用图形界面，用<span style="color:red">cmdline arthas</span>
+  + 图形界面用于测试阶段，压测观察
+
++ jmap - histo 4655 | head -20 ,查找有多少对象产生
+
++ jmap -dump：format=b,file=xxx pid
+
+  线上系统，内存特别大，jmap执行期间会对进程产生很大的影响，甚至卡顿（电商不适合）
+
+  + 设定参数HeapDump,OOM的时候会自动产生堆转存文件
+  + 很多服务器备份（高可用），停掉一台服务器对业务影响不大
+  + 在线定位（小公司用不到）
+
++ java -Xms20M -Xmx20M -XX:+UseParallelGC -XX:_HeapDumpOnOutOfMemoryError FullGC_Problem01
+
++ 使用MAT、jhat、jvisualvm进行dump文件分析
+
+  https://www.cnblogs.com/baihuitestsoftware/articles/6406271.html 
+  jhat -J-mx512M xxx.dump
+  http://192.168.17.11:7000
+  拉到最后：找到对应链接
+  可以使用OQL查找特定问题对象
+
++ 找到代码的问题
+
+#### jconsole远程连接
+
+> java -Djava.rmi.server.hostname=192.168.211.11 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=11111 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false XXX
+
+## 重点垃圾收集器
+
+### CMS
+
+#### CMS 存在的两个问题
+
++ 内存碎片化——MarkSweep 标记清除算法
+
++ 当无法分配内存时，会进行FullGC，是使用serial old垃圾收集器进行单线程回收，效率低，STW
+
+  解决办法：降低触发CMS的阈值  
+
+  jdk1.8 -XX:CMSInitiatingOccupancyFraction 默认值是-1，通过如下公式可以计算：
+
+  > (100-MinHeapFreeRatio)+(CMSTriggerRatio*MinHeapFreeRatio/100)
+
+  jdk1.8（100-40）+ (80*40/100)=92
+
+  <span style="color:red">如果频繁发生Serial Old卡顿，应该将这个值调小，使其频繁的进行CMS回收，减少或者避免FullGC</span>
+
+#### CMS阶段
+
++ 初始化标记阶段
+
+  initial mark，通过GC Roots找到根对象，该阶段会导致STW，但是时间很短；
+
++ 并发标记
+
+  concurrent mark，最耗时的阶段
+
++ 重新标记
+
+  remark，标记上个阶段并发标记过程中产生的垃圾对象，会导致STW
+
++ 并发清理
+
+### G1
+
+G1是一种服务端应用程序适用的垃圾收集器，目标是用在多核、大内存的机器上，它在大多数情况下可以实现指定GC暂停时间，同时还能保持较高的吞吐量
+
+#### 特点
+
++ 内存区域不是固定的Eden或者old
+
++ 并发收集
+
++ 压缩空闲空间不会延长GC的暂停时间
+
++ 更容易预测GC的暂停时间
+
++ 适用不需要实现很高的吞吐量的场景
+
++ 新、老年代的比例是动态的，建议不要手工指定
+
+  因为这是G1预测停顿时间的基准
+
+#### 基本概念
+
++ CSet(Collection Set)
+
+  一组可被回收的分区的集合；在CSet中存活的数据会在GC过程中被移动到另一个可用分区，CSet中的分区可以来自Eden区，Survivor区或者老年代，CSet会占用不到整个堆空间的1%。
+
++ <span style="color:red">RSet(Remembered Set)</span>
+
+  每一个Region中，都有一个Hash表，记录了其他Region中的对象到本Region的引用，RSet的价值在于：使得垃圾收集器不需要扫描整个堆，找到谁引用了当前分区中的对象，只需要扫描RSet即可。
+
+  G1能够高速回收的关键，详细到对象级别，占用的空间会多一点点
+
+  <span style="color:red">由于RSet的存在，那么每次给对象赋引用的时候，就得做一些额外的操作，（在RSet中做一些额外的记录，在GC中被称为写屏障，这个写屏障不是内存屏障）</span>
+
+#### G1何时触发GC
+
++ YGC
+
+  Eden空间不足，多线程并行执行
+
++ FGC
+
+  Old空间不足，System.gc();
+
+#### MixedGC
+
+相当于一个CMS，有一个参数(InitiatingHeapOccupancyPercent)默认值是45%，意思是当堆内存达到45%时，启动MixedGC，
+
+MixedGC执行流程：
+
++ 初始标记 (initial-mark) STW
++ 并发标记
++ 最终标记（重新标记） STW
++ 并行筛选回收 
+
+模拟MixedGC执行的场景：
+
+> [GC pause (G1 Evacuation Pause) (young) (initial-mark), 0.1025634 secs]
+>    [Parallel Time: 102.3 ms, GC Workers: 1]
+>       [GC Worker Start (ms):  762704.1]
+>       [Ext Root Scanning (ms):  0.4]
+>       [Update RS (ms):  19.4]
+>          [Processed Buffers:  56]
+>       [Scan RS (ms):  6.0]
+>       [Code Root Scanning (ms):  0.0]
+>       [Object Copy (ms):  76.5]
+>       [Termination (ms):  0.0]
+>          [Termination Attempts:  1]
+>       [GC Worker Other (ms):  0.0]
+>       [GC Worker Total (ms):  102.2]
+>       [GC Worker End (ms):  762806.3]
+>    [Code Root Fixup: 0.0 ms]
+>    [Code Root Purge: 0.0 ms]
+>    [Clear CT: 0.0 ms]
+>    [Other: 0.3 ms]
+>       [Choose CSet: 0.0 ms]
+>       [Ref Proc: 0.0 ms]
+>       [Ref Enq: 0.0 ms]
+>       [Redirty Cards: 0.1 ms]
+>       [Humongous Register: 0.0 ms]
+>       [Humongous Reclaim: 0.0 ms]
+>       [Free CSet: 0.0 ms]
+>    [Eden: 17.0M(17.0M)->0.0B(12.0M) Survivors: 4096.0K->3072.0K Heap: 168.7M(200.0M)->159.2M(200.0M)]
+>  [Times: user=0.03 sys=0.07, real=0.10 secs] 
+> [GC concurrent-root-region-scan-start]
+> [GC concurrent-root-region-scan-end, 0.0130782 secs]
+> [GC concurrent-mark-start]
+> [GC concurrent-mark-end, 1.6027589 secs]
+> [GC remark [Finalize Marking, 0.0004751 secs] [GC ref-proc, 0.0000756 secs] [Unloading, 0.0021195 secs], 0.0050491 secs]
+>  [Times: user=0.00 sys=0.00, real=0.00 secs] 
+> [GC cleanup 159M->157M(200M), 0.0008976 secs]
+>  [Times: user=0.01 sys=0.00, real=0.00 secs] 
+> [GC concurrent-cleanup-start]
+> [GC concurrent-cleanup-end, 0.0000092 secs]
+
+<span style="color:red">从整个GC日志来看，当到达阈值过后触发MixedGC，流程如下：</span>
+
++ initial-mark(Root Scanning)
++ concurrent-root-region-scan
++ concurrent-mark
++ remark（Finalize Marking）
++ cleanup
++ concurrent-cleanup
+
+网上有文章说jdk1.8使用G1不会触发MixedGC，因为InitiatingHeapOccupancyPercent参数有Bug，纯属扯淡
+
+#### G1的FullGC
+
+java 10以前是串行FullGC，之后是并行FullGC
+
+<span style="color:red">G1的调优应尽量避免FullGC</span>
+
+## 重点算法
+
+### Card Table
+
+由于GC时，需要扫描整个Old区，效率非常低，所以JVM设计了CardTable，
+
+如果一个Old区的CardTable中有对象指向Y区（年轻代），就将它设为Dirty，下次扫描时，只需要扫描Dirty Card，
+
+在结构上，Card Table用BitMap来实现
+
+### 三色标记算法
+
+#### 算法概念
+
++ 白色：未被标记的对象
++ 灰色：自身被标记，成员变量未被标记
++ 黑色：自身和成员变量均已标记完成
+
+![](./res/三色标记算法.png)
+
+漏标的情况：
+
+![](./res/三色标记算法-漏标.png)
+
+#### 漏标的解决办法
+
+要解决漏标的问题，只要打破漏标必须同时满足的两个条件之一即可,解决方法有以下两种：
+
++ 增量更新（incremental update）
+
+  关注引用的增加，把黑色重新标记为灰色，下次重新扫描属性（这样已经扫描过的Files也会扫描）。
+
+  CMS使用的是这种方式
+
++ SATB-关注引用的删除（snapshot at the beginning）
+
+  当B->D的引用消失时，会把这个引用推到GC的堆栈，保证D还能被GC扫描到
+
+  G1使用的是这种方式，
+
+  为什么G1使用这种方式？
+
+  +  因为采用增量更新的方式的话，会导致已经扫描过的对象的Files，需要重新扫描，Files可能很多，或者链路很深。
+
+  + <span style="color:red">SATB与RSet配合，浑然天成</span>
+
+    G1使用的是Region，并且每个Region中(RSet)都保存了其他对象对本Region中对象的引用。这样就可以直接扫描D对象所在的RSet，看有没有对象引用D对象，如果没有就可以直接回收D对象
+
+  
