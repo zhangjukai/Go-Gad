@@ -14,6 +14,7 @@
         <module>cloud-provider-user9001</module>
 		<module>cloud-provider-user9002</module>
         <module>cloud-Gateway</module>
+        <module>cloud-alibaba-provider9801</module>
     </modules>
 
     <!-- 版本号管理 -->
