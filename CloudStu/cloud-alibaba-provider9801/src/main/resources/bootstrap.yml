@@ -12,5 +12,20 @@ spring:
         file-extension: yaml
         group: DEFAULT_GROUP
         ## namespace:
-
-
+    sentinel:
+      transport:
+        dashboard: 192.168.211.128:8080
+        port: 8719
+      datasource:
+        ds1:
+          nacos:
+            server-addr: 192.168.211.128:10000
+            dataId: sentinel-config
+            groupId: DEFAULT_GROUP
+            data-type: json
+            rule-type: flow
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
