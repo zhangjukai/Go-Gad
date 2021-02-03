@@ -10,6 +10,7 @@ import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
@@ -17,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableDiscoveryClient
 @MapperScan(value = "com.zjk.hy.dao")
 @EnableCircuitBreaker
+@EnableTransactionManagement
 public class User9001Starter {
 
     public static void main(String[] args) {
