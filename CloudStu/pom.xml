@@ -15,6 +15,7 @@
 		<module>cloud-provider-user9002</module>
         <module>cloud-Gateway</module>
         <module>cloud-alibaba-provider9801</module>
+        <module>spring-study</module>
     </modules>
 
     <!-- 版本号管理 -->
