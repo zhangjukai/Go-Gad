@@ -345,7 +345,7 @@ JDK诞生时就有了Serial，为了提高效率诞生了Parallel Scavenge；jDK
 
 + ParallelOld
 
-+ Concurrent MarkSweep 老年代 <span style="color:red">并发</span>的，垃圾回收和应用程序同时运行，降低STW的时间（200ms）
++ Concurrent MarkSweep 老年代   <span style="color:red">并发</span>的，垃圾回收和应用程序同时运行，降低STW的时间（200ms）
 
   要使用CMS只能手动指定，CMS既然是MarkSweep，就一定会有碎片化的问题，碎片达到一定程度，CMS的老年代分配不下对象时，使用SerialOld进行老年代回收
 
@@ -667,7 +667,7 @@ G1GC日志信息：
 
   + 设置日志参数
 
-    > -Xlogg /opt/xxx/logs/xxx-xxx-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause
+    > -Xlogg /usr/local/java/pro/jvm/logs/gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause
 
     日志文件不能搞成一个，可以按照日期规定文件大小，或者每天生产一个文件
 

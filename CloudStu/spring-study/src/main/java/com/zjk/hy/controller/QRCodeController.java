@@ -14,14 +14,14 @@ public class QRCodeController {
      */
     @GetMapping("generateQRCode")
     public String generateQRCode() throws Exception {
-        //String path = "/use/local/java/pro/jvm/files/"+ UUID.randomUUID().toString().replaceAll("-","")+".png";
-        String path = "D:\\Workspace\\files\\" + UUID.randomUUID().toString().replaceAll("-","")+".png";
+        String path = "/usr/local/java/pro/jvm/files/"+ UUID.randomUUID().toString().replaceAll("-","")+".png";
+        //String path = "D:\\Workspace\\files\\" + UUID.randomUUID().toString().replaceAll("-","")+".png";
         QRCodeTools.generateQRCode("https://www.baidu.com/",300,300,path);
         return path;
     }
     @GetMapping("replaceQrByPath")
     public String replaceQrByPath() {
-        String path = "/use/local/java/pro/jvm/files/";
+        String path = "/usr/local/java/pro/jvm/files/";
         String QRPath = path + UUID.randomUUID().toString().replaceAll("-","")+".png";
         // String path = "D:\\Workspace\\files\\";
         try {

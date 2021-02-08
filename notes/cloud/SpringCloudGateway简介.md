@@ -70,3 +70,97 @@ Filter在“pre”类型的过滤器可以做参数校验、权限校验、流�
 ## 入门教程
 
 >  cloud-Gateway
+
+## Gateway实现灰度发布
+
+```yaml
+routes:
+- id: payment1 #路由的ID，没有固定规则但要求唯一，建议配合服务名
+  # uri: http://localhost:8001   #匹配后提供服务的路由地址
+  uri: lb://CLOUD-PROVIDER-PAYMENT
+  predicates:
+    - Path=/payment/**
+    - Weight=group1, 8
+  filters:
+    - StripPrefix=1
+- id: payment1 #路由的ID，没有固定规则但要求唯一，建议配合服务名
+    # uri: http://localhost:8001   #匹配后提供服务的路由地址
+    uri: lb://CLOUD-PROVIDER-PAYMENT_new
+    predicates:
+      - Path=/payment/**
+      - Weight=group1, 2
+    filters:
+      - StripPrefix=1
+```
+
+整体思想就是：同一个path映射到不同的uri（服务名）上，并设置相应的权重，同一个服务名下的多个应用同样使用默认的Ribbon进行负载均衡
+
+## Gateway限流
+
+SpringCloud Gateway提供了RequestRateLimiterGatewayFilterFactory这个类，来<font color=red>实现了基于redis+lua的令牌桶算法的限流模式</font>。
+
+pom文件：
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-gateway</artifactId>
+</dependency>
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifatId>spring-boot-starter-data-redis-reactive</artifactId>
+</dependency>
+```
+
+配置：
+
+```yaml
+routes:
+- id: payment1 #路由的ID，没有固定规则但要求唯一，建议配合服务名
+  uri: lb://CLOUD-PROVIDER-PAYMENT
+  predicates:
+    - Path=/payment/**
+    - Weight=group1, 8
+  filters:
+    - StripPrefix=1
+    - name: RequestRateLimiter
+      args:
+        key-resolver: '#{@hostAddrKeyResolver}'
+        redis-rate-limiter.replenishRate: 1
+        redis-rate-limiter.burstCapacity: 3
+```
+
+- burstCapacity，令牌桶总容量。
+- replenishRate，令牌桶每秒填充平均速率。
+- key-resolver，用于限流的键的解析器的 Bean 对象的名字。它使用 SpEL 表达式根据#{@beanName}从 Spring 容器中获取 Bean 对象。
+
+```java
+public class HostAddrKeyResolver implements KeyResolver {
+
+    @Override
+    public Mono<String> resolve(ServerWebExchange exchange) {
+        return Mono.just(exchange.getRequest().getRemoteAddress().getAddress().getHostAddress());
+    }
+
+}
+
+ 	@Bean
+    public HostAddrKeyResolver hostAddrKeyResolver() {
+        return new HostAddrKeyResolver();
+    }
+}
+```
+
+或者
+
+```java
+@Bean
+KeyResolver userKeyResolver() {
+    return exchange ->Mono
+        .just(exchange.getRequest().getQueryParams().getFirst("user"));
+}
+```
+
+配置中的#{@}其实是读取Spring容器中的bean的
+

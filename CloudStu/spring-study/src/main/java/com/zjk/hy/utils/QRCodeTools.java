@@ -53,7 +53,11 @@ public class QRCodeTools {
                 locaFile.mkdirs();
             }
             String targetUrl = location + File.separatorChar + UUID.randomUUID().toString().replaceAll("-", "") + "_QRCodeTarget.png";
-            QRCodeTools.replaceQr(getInputStream(image),new FileInputStream(new File(qrcode)), new File(targetUrl));
+            File target = new File(targetUrl);
+            File qrFile = new File(qrcode);
+            QRCodeTools.replaceQr(getInputStream(image),new FileInputStream(qrFile), target);
+            target.delete();
+            qrFile.delete();
             return targetUrl;
         } catch (Exception e) {
             throw new RuntimeException("替换二维码信息异常");

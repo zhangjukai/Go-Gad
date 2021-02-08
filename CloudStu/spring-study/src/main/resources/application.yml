@@ -1,5 +1,6 @@
 server:
   port: 8808
+  max-http-header-size: 4800000
 spring:
   redis:
     password: edai@168

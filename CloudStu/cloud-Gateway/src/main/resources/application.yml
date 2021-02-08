@@ -9,13 +9,19 @@ spring:
         locator:
           enabled: true
       routes:
-      - id: cloud-provider-payment #路由的ID，没有固定规则但要求唯一，建议配合服务名
+      - id: payment1 #路由的ID，没有固定规则但要求唯一，建议配合服务名
         # uri: http://localhost:8001   #匹配后提供服务的路由地址
         uri: lb://CLOUD-PROVIDER-PAYMENT
         predicates:
           - Path=/payment/**
+          - Weight=group1, 8
         filters:
           - StripPrefix=1
+          - name: RequestRateLimiter
+            args:
+              key-resolver: '#{@hostAddrKeyResolver}'
+              redis-rate-limiter.replenishRate: 1
+              redis-rate-limiter.burstCapacity: 3
 eureka:
   instance:
     hostname: cloud-gateway
