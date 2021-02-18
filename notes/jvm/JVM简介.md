@@ -335,23 +335,51 @@ JDK诞生时就有了Serial，为了提高效率诞生了Parallel Scavenge；jDK
 
 为什么会有并发垃圾回收器，是因为<span style="color:red">STW</span>（stop the word）
 
-+ Serial 年轻代 串行回收
++ Serial 
 
-+ Parallel Scavenge 年轻代 <span style="color:red">并行回收</span>
-
-+ ParNew 年轻代  配合CMS的并行回收器
+  年轻代 串行回收，所有收集器里额外内存消耗（Memory Footprint）最小的  ，基于标记-复制算法实现
 
 + Serial Old 
 
+  老年代、串行化回收，Mark-Compact 标记整理算法,也是stw:暂停所有线程进行垃圾回收;
+
++ Parallel Scavenge 
+
+  年轻代、并行回收(STW)、基于标记-复制算法实现，目标是达到一个可控制的吞吐量，Parallel Scavenge提供了两个参数用于精准控制吞吐量，
+
+  + -XX: MaxGCPauseMillis   控制最大垃圾收集停顿时间
+  + -XX: GCTimeRatio 直接设置吞吐量大小
+
++ ParNew 年轻代  配合CMS的并行回收器
+
+  ParNew收集器实质上是Serial收集器的多线程并行版本， 除了同时使用多条线程进行垃圾收集之
+  外， 其余的行为包括Serial收集器可用的所有控制参数（例如： -XX： SurvivorRatio、 -XX：
+  PretenureSizeThreshold、 -XX： HandlePromotionFailure等） 、 收集算法、 Stop The World、 对象分配规
+  则、 回收策略等都与Serial收集器完全一致，  
+
 + ParallelOld
 
-+ Concurrent MarkSweep 老年代   <span style="color:red">并发</span>的，垃圾回收和应用程序同时运行，降低STW的时间（200ms）
+  老年代，并行收集，基于标记-整理算法实现 ，JDK1.6开始提供
 
-  要使用CMS只能手动指定，CMS既然是MarkSweep，就一定会有碎片化的问题，碎片达到一定程度，CMS的老年代分配不下对象时，使用SerialOld进行老年代回收
++ Concurrent MarkSweep 
+
+  老年代、并发收集、以最短停顿时间为目标，提高响应时间，基于标记-清除算法
+
+  包括：初始标记（stw）、并发标记、重新标记（stw），并发清除
+
+  存在的问题：
+
+  + 对资源敏感（因为并发）
+  + 无法处理浮动垃圾（浮动垃圾：并发清理阶段应用程序还在执行，此时产生的垃圾），可能导致Concurrent Mode Failure，只能使用SerialOld进行老年代回收（一次更久的FullGC）
+  + 空间碎片太多（标记-清除算法），还有空间，大对象却没法分配
+
+  垃圾回收和应用程序同时运行，降低STW的时间（200ms）
 
 + G1(10ms)
 
   算法：三色标记+SATB
+
+  JDK9 G1宣告取代Parallel Scavenge加Parallel Old组合  
 
 + ZGC(1ms) pk C++
 

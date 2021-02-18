@@ -1,13 +1,7 @@
 # Go-Gad
-​		 自己学习、复习中的一些记录，纯属于自己的一个备忘录。
+本来准备2020年学习梳理下java体系的相关技术，不过由于初做人父，陪伴小孩和家人的时间比想象的多，回到家后的空余时间少了许多，所以大部分都总结得不够，只能算是一个备忘录。
 
 ## JavaSE
-
-### 部分知识点整理
-
-- [java对象在内存中的存储布局](notes/se/java对象在内存中的存储布局.md)
-- [Java equals、hashCode整理](notes/se/equals与hashCode整理.md)
-- [Java  Comparable 和 Comparator](notes/se/Comparable和Comparator.md)
 
 ### 集合源码分析
 
@@ -60,18 +54,35 @@
   + CopyOnWriteArrayList
   + CopyOnWriteArraySet
 
+## JVM
++ [JVM简介](notes/jvm/JVM简介.md)
++ [Java内存模型](notes/jvm/Java内存模型.md)
++ [java对象在内存中的存储布局](notes/jvm/java对象在内存中的存储布局.md)
+
 ## Spring
 
 + [Spring常用点梳理总结](notes/Spring/spring常用点梳理总结.md)
 + [Spring循环依赖分析](notes/Spring/Spring循环依赖分析.md)
 + [Spring重点类总结](notes/Spring/Spring重点类总结.md)
++ [Spring扩展点](notes/Spring/Spring扩展点.md)
++ [RedisTemplate简单使用](notes/Spring/RedisTemplate简单使用.md)
++ [SpringMvc](notes/Spring/SpringMvc.md)
 
 ## MyBatis
 
-- [Mybatis常用知识点梳理总结](notes/Mybatis/Mybatis常用知识点梳理总结.md)
-- [Mybatis日志实现](notes/Mybatis/Mybatis日志实现.md)
-- [MyBatis-Plus自动填充扩展](notes/Mybatis/MyBatis-Plus自动填充扩展.md)
-- [处理Blob字段.md](notes/Mybatis/处理Blob字段.md)
++ [Mybatis常用知识点梳理总结](notes/Mybatis/Mybatis常用知识点梳理总结.md)
++ [Mybatis日志实现](notes/Mybatis/Mybatis日志实现.md)
++ [MyBatis-Plus自动填充扩展](notes/Mybatis/MyBatis-Plus自动填充扩展.md)
++ [处理Blob字段.md](notes/Mybatis/处理Blob字段.md)
+
+## Cloud
++ [AlibabaNacos简介](notes/cloud/AlibabaNacos简介.md)
++ [Hystrix断路器简介](notes/cloud/Hystrix断路器简介.md)
++ [openfeign服务调用](notes/cloud/openfeign服务调用.md)
++ [Ribbon服务调用](notes/cloud/Ribbon服务调用.md)
++ [Sentinel简介](notes/cloud/Sentinel简介.md)
++ [SpringCloudGateway简介](notes/cloud/SpringCloudGateway简介.md)
++ [限流算法](notes/cloud/限流算法.md)
 
 ## 设计模式
 
@@ -96,9 +107,15 @@
 
 ## Redis
 
-[Redis雪崩、穿透、击穿](notes/DB/redis/Redis雪崩、穿透、击穿.md)
++ [Redis雪崩、穿透、击穿](notes/DB/redis/Redis雪崩、穿透、击穿.md)
++ [Redis笔记](notes/DB/redis/Redis笔记.md)
 
-
+## Mysql
++ [centos8安装mysql5.7](notes/DB/mysql/centos8安装mysql5.7.md)
++ [Mysql笔记](notes/DB/mysql/Mysql笔记.md)
++ [mysql四表联查经典问题](notes/DB/mysql/mysql四表联查经典问题.md)
++ [mysql执行计划](notes/DB/mysql/mysql执行计划.md)
++ [mysql-join优化过程](notes/DB/mysql/mysql-join优化过程.md)
 
 ## 其他
 
