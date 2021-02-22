@@ -381,6 +381,8 @@ JDK诞生时就有了Serial，为了提高效率诞生了Parallel Scavenge；jDK
 
   JDK9 G1宣告取代Parallel Scavenge加Parallel Old组合  
 
+  采用的是标记复制算法
+
 + ZGC(1ms) pk C++
 
   算法：ColoredPointers + LoadBarrier
@@ -430,7 +432,7 @@ JDK1.8默认的垃圾回收器是Parallel Scavenge+ParallelOld
 * Linux下1.8版本默认的垃圾回收器到底是什么？
 
   * 1.8.0_181 默认（看不出来）Copy MarkCompact
-  * 1.8.0_222 默认 PS + PO
+  * 1.8.0_222 默认 PS + PO 
 
 ### JVM调优
 
@@ -843,11 +845,9 @@ public class FullGC_Problem01 {
 
   怎么样自定义线程池里的线程名称（自定义ThreadFactory）
 
-  
-
 + jinfo pid
 
-+ jstate -gc 动态观察GC的情况，阅读GC日志（发现频繁GC）/arthas观察/jconsole/jvisualVM/Jprofiler(最好用)
++ jstat -gc 动态观察GC的情况，阅读GC日志（发现频繁GC）/arthas观察/jconsole/jvisualVM/Jprofiler(最好用)
 
   jstat -gc 4655 500;每个500个毫秒打印GC的情况
 
