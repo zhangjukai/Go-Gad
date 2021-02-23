@@ -186,5 +186,51 @@ finally {
 
 
 
+使用Spring+MyBatis plus后的执行流程是：
+
+JdkDynamicAopProxy.invoke（Spring AOP 实现的动态代理）
+
+PageMapperProxy.invoke（mybatis plus，重写的是mybatis的MapperProxy）
+
+PageMapperMethod.execute (mybatis plus，重写的是mybatis的MapperMethod)
+
+SqlSessionTemplate.selectOne （mybatis.spring提供的通过，一个动态代理实现，最后finally中关闭了session，替代了mybatis默认DefaultSqlSession）
+
+defualtSqlSession.具体的查询方法
+
+从configuration中拿出了一个MappedStatement
+
+MappedStatement.boundSql
+
+CachingExecutor 二级缓存中查询
+
+BaseExecutor.query
+
+simpleExecutor
+
+prepareStatement
+
+resultHandler
+
+## MyBatis三级缓存
+
+### 一级缓存
+
+同一个SqlSession对象，在参数和SQL完全一样的情况下，只要执行一次SQL语句，就会去缓存中取
+
+一级缓存因为只能在同一个SqlSession中共享，所以会存在一个问题，在分布式或者多线程的环境下，不同会话之间对于相同的数据可能会产生不同的结果，因为跨会话修改了数据是不能互相感知的，所以就有可能存在脏数据的问题，正因为一级缓存存在这种不足，所以我们需要一种作用域更大的缓存，这就是二级缓存。
+
+如果使用Spring，一级缓存会失效，上面介绍过了
+
+
+
+### 二级缓存
+
+二级缓存存在于SqlSession生命周期中，二级缓存有全局开关，cacheEnable，默认是开启的
+
+CachingExecutor 其实没啥用，需要自己去做缓存
+
+
+
 
 
