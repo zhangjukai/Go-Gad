@@ -1,8 +1,22 @@
 ## redis笔记
 
+### 简介
+
+命令大全：
+
+http://www.redis.cn/commands.html
+
+http://doc.redisfans.com/
+
+redis里程碑版本：
+
+![](./res/redis-history.png)
+
+
+
 ### 安装
 
-一、解压
+1. 解压
 
 　　tar -zxvf redis-6.0.8.tar.gz
 
@@ -12,7 +26,7 @@
 
 　　make && make install PREFIX=/usr/local/redis
 
-二、配置
+2. 配置
 
 　　mkdir /usr/local/redis/conf.d
 
@@ -61,7 +75,7 @@ PrivateTmp=true
 WantedBy=multi-user.target
 ```
 
-三、启动
+3. 启动
 
 　　systemctl enable redis
 
@@ -71,15 +85,52 @@ WantedBy=multi-user.target
 
 　　systemctl status redis
 
+4. 查看redis版本
+
+   ```
+   $ redis-server -v
+   $ redis-cli 进入后，通过info查看
+   ```
+
 ### redis特点
 
 + 存储在内存中，**速度快**
+
 + Key-Value
+
 + 单线程Worker，6.x过后支持iothread并发
+
+  所谓的单线程，主要是指Redis的网络IO和键值对读写是由一个线程来完成的，
+
+  redis工作线程是单线程的，但是对于整个redis来说是多线程的，但Redis的其他功能，比如持久化、异步删除、集群数据同步等等，其实是由额外的线程执行的。
+
+  ![](./res/reids_woker_thread.png)
+
 + 连接多，通过epoll(IO多路复用)实现
+
 + Value支持5种数据类型
+
 + 本地方法：计算向数据移动，IO优化
+
 + 串行化/原子操作：并行 VS 串行
+
+### 为什么速度快
+
++ 基于内存操作
+
+  Redis 的所有数据都存在内存中，因此所有的运算都是内存级别的，所以他的性能比较高；
+
++ 数据结构简单
+
+  Redis 的数据结构是专门设计的，而这些简单的数据结构的查找和操作的时间大部分复杂度都是 O(1)，因此性能比较高；
+
++ 多路复用和非阻塞 I/O
+
+  Redis使用 I/O多路复用功能来监听多个 socket连接客户端，这样就可以使用一个线程连接来处理多个请求，减少线程切换带来的开销，同时也避免了 I/O 阻塞操作
+
++ 避免上下文切换
+
+  因为是单线程模型，因此就避免了不必要的上下文切换和多线程竞争，这就省去了多线程切换带来的时间和性能上的消耗，而且单线程不会导致死锁问题的发生
 
 ### redis与memcached的区别
 
