@@ -20,11 +20,8 @@ public class ChunkConsumer {
             consumer = pulsarClient.newConsumer(Schema.STRING)
                     .topic("persistent://public/default/test-chunk")
                     .subscriptionType(SubscriptionType.Exclusive).maxPendingChunkedMessage(Integer.MAX_VALUE)
-                    //.enableRetry(true)
                     .ackTimeout(1000,TimeUnit.MILLISECONDS)
                     .subscriptionName("my-subsc")
-                    //.subscriptionType(SubscriptionType.Failover)
-                    //.subscriptionType(SubscriptionType.Shared)
                     .subscribe();
         } catch (PulsarClientException e) {
             e.printStackTrace();

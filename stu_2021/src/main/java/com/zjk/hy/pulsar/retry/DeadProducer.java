@@ -17,11 +17,9 @@ public class DeadProducer {
         PulsarClient pulsarClient = PulsarFactory.getClient();
         try {
             Producer<byte[]> producer = pulsarClient.newProducer(Schema.BYTES).enableBatching(false)
-                    .topic("zjk-dead-retry-topic-byte")
+                    .topic("keytop-dead-retry-topic-byte")
                     .create();
-            for (int i = 0; i < 1; i++) {
-                producer.send("my-retry-letter-topic-flag-ack20".getBytes(StandardCharsets.UTF_8));
-            }
+            producer.send("my-retry-letter-topic-flag-ack55".getBytes(StandardCharsets.UTF_8));
             producer.close();
             pulsarClient.close();
         } catch (Exception e) {

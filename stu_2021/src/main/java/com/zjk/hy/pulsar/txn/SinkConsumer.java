@@ -16,8 +16,8 @@ public class SinkConsumer {
                     .enableTransaction(true)
                     .build();
 
-            String sourceTopic = "public/default/source-topic";
-            String sinkTopic = "public/default/sink-topic1";
+            String sourceTopic = "public/default/txn-source-topic";
+            String sinkTopic = "public/default/txn-sink-topic";
             Consumer<String> sinkConsumer = pulsarClient
                     .newConsumer(Schema.STRING)
                     .topic(sinkTopic)

@@ -20,8 +20,8 @@ public class TransactionTest {
                     .enableTransaction(true)
                     .build();
 
-            String sourceTopic = "public/default/source-topic";
-            String sinkTopic = "public/default/sink-topic1";
+            String sourceTopic = "public/default/txn-source-topic";
+            String sinkTopic = "public/default/txn-sink-topic";
 
             Producer<String> sourceProducer = pulsarClient
                     .newProducer(Schema.STRING)
@@ -54,14 +54,14 @@ public class TransactionTest {
             Message<String> message = sourceConsumer.receive();
 
             // 支付  newTransaction
-            System.out.println(message.getValue());
             sourceConsumer.acknowledgeAsync(message.getMessageId(), txn);
             sinkProducer.newMessage(txn).value("kaifp").send();
-           // sinkProducer.newMessage(txn).value("sink data1").send();
+            sinkProducer.newMessage(txn).value("sink data1").send();
             System.out.println("message："+message.getValue());
             System.out.println("执行成功");
-            txn.commit().get();
+           // txn.commit().get();
         } catch (Exception e) {
+            txn.abort();
             e.printStackTrace();
         }
 

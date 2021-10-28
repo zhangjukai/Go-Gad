@@ -3,6 +3,7 @@ package com.zjk.hy.pulsar.retry;
 import com.zjk.hy.pulsar.util.PulsarFactory;
 import org.apache.pulsar.client.api.*;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -13,20 +14,22 @@ import java.util.concurrent.TimeUnit;
 public class ConsumerTest {
     public static void main(String[] args) {
         PulsarClient pulsarClient = PulsarFactory.getClient();
+
+
         try {
             Consumer<byte[]> consumer = pulsarClient.newConsumer(Schema.BYTES)
-                    .topic("zjk-dead-retry-topic-byte")
+                    .topic("keytop-dead-retry-topic-byte")
                     .subscriptionName("my-subscription")
                     .subscriptionType(SubscriptionType.Shared)
                     .enableRetry(true) // 是否重试
                     .receiverQueueSize(10000)
                     //配置重试队列
                     .deadLetterPolicy(DeadLetterPolicy.builder()
-                            .maxRedeliverCount(2) // 重试次数
+                            .maxRedeliverCount(3) // 重试次数
                             // 设置重试队列
-                            .retryLetterTopic("zjk-dead-retry-topic-byte-retry")
+                            .retryLetterTopic("keytop-dead-retry-topic-byte-retry")
                             // 设置死信队列
-                            .deadLetterTopic("zjk-dead-retry-topic-byte-DLQ")
+                            .deadLetterTopic("keytop-dead-retry-topic-byte-DLQ")
                             .build())
                     .subscriptionInitialPosition(SubscriptionInitialPosition.Earliest)
                     .subscribe();
@@ -34,13 +37,15 @@ public class ConsumerTest {
             int index = 1;
             boolean flag = true;
             while (true) {
-                System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
                 Message message = consumer.receive();
                 if(message !=null) {
-                    System.out.println("================index:"+index+",data:"+new String(message.getData()));
-                   // consumer.acknowledge(message);
-                    consumer.reconsumeLater(message,1,TimeUnit.MINUTES);
-                    //consumer.acknowledge(message);
+                    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>> Date:"+ LocalDateTime.now().toString() +",  index:"+index+",  data:"+new String(message.getData()));
+                    if(index == 3) {
+                        System.out.println("message ack ok ");
+                        consumer.acknowledge(message);
+                        continue;
+                    }
+                    consumer.reconsumeLater(message,10,TimeUnit.SECONDS);
                     index++;
                 }
 

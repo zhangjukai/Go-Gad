@@ -5,49 +5,49 @@
 
 ### 集合源码分析
 
-- [集合框架整体介绍](notes/se/collection/集合框架整体介绍.md)
-- [AbstractCollection源码分析](notes/se/collection/AbstractCollection源码分析.md)
-- [AbstractList源码分析](notes/se/collection/AbstractList源码分析.md)
-- [ArrayList源码分析](notes/se/collection/ArrayList源码分析.md)
-- [Stack源码分析](notes/se/collection/Stack源码分析.md)
-- [Queue源码分析](notes/se/collection/Queue源码分析.md)
-- [Deque源码分析](notes/se/collection/Deque源码分析.md)
-- [ArrayDeque源码分析](notes/se/collection/ArrayDeque源码分析.md)
-- [HashMap原理分析](notes/se/collection/HashMap原理分析.md)
-- [PriorityQueue原理分析](notes/se/collection/PriorityQueue原理分析.md)
+- [集合框架整体介绍](notes/java/collection/集合框架整体介绍.md)
+- [AbstractCollection源码分析](notes/java/collection/AbstractCollection源码分析.md)
+- [AbstractList源码分析](notes/java/collection/AbstractList源码分析.md)
+- [ArrayList源码分析](notes/java/collection/ArrayList源码分析.md)
+- [Stack源码分析](notes/java/collection/Stack源码分析.md)
+- [Queue源码分析](notes/java/collection/Queue源码分析.md)
+- [Deque源码分析](notes/java/collection/Deque源码分析.md)
+- [ArrayDeque源码分析](notes/java/collection/ArrayDeque源码分析.md)
+- [HashMap原理分析](notes/java/collection/HashMap原理分析.md)
+- [PriorityQueue原理分析](notes/java/collection/PriorityQueue原理分析.md)
 
 ### 高并发程序设计
 
 + 多线程
-  + [Java内存模型](notes/se/thread/Java内存模型.md)
-  + [多线程基础](notes/se/thread/Thread.md)
-  + [CAS深入理解](notes/se/thread/CAS深入理解.md)
-  + [synchronized原理深入分析](notes/se/thread/synchronized原理深入分析.md)
-  + [volatile原理](notes/se/thread/Volatile.md)
-  + [ThreadLocal原理](notes/se/thread/ThreadLocal.md)
+  + [Java内存模型](notes/java/thread/Java内存模型.md)
+  + [多线程基础](notes/java/thread/Thread.md)
+  + [CAS深入理解](notes/java/thread/CAS深入理解.md)
+  + [synchronized原理深入分析](notes/java/thread/synchronized原理深入分析.md)
+  + [volatile原理](notes/java/thread/Volatile.md)
+  + [ThreadLocal原理](notes/java/thread/ThreadLocal.md)
 + 线程池
-  + [Executor-线程池简介](notes/se/JUC/Executor/线程池简介.md)
-  + [ForkJoin简介](notes/se/JUC/Executor/ForkJoin简介.md)
+  + [Executor-线程池简介](notes/java/JUC/Executor/线程池简介.md)
+  + [ForkJoin简介](notes/java/JUC/Executor/ForkJoin简介.md)
 + atomic原子类
-  + [atomic简介](notes/se/JUC/atomic/atomic简介.md)
+  + [atomic简介](notes/java/JUC/atomic/atomic简介.md)
 + Lock锁
-  + [Lock简介](notes/se/JUC/lock/Lock简介.md)
-  + [ReentrantLock深入理解](notes/se/JUC/lock/ReentrantLock深入理解.md)
-  + [AQS-Condition深入理解](notes/se/JUC/lock/AQS-Condition.md)
-  + [LockSupport深入理解](notes/se/JUC/lock/LockSupport.md)
-  + [ReentrantReadWriteLock深入理解](notes/se/JUC/lock/ReentrantReadWriteLock深入理解.md)
+  + [Lock简介](notes/java/JUC/lock/Lock简介.md)
+  + [ReentrantLock深入理解](notes/java/JUC/lock/ReentrantLock深入理解.md)
+  + [AQS-Condition深入理解](notes/java/JUC/lock/AQS-Condition.md)
+  + [LockSupport深入理解](notes/java/JUC/lock/LockSupport.md)
+  + [ReentrantReadWriteLock深入理解](notes/java/JUC/lock/ReentrantReadWriteLock深入理解.md)
 + 同步工具类
-  + [Condition深入理解](notes/se/JUC/lock/AQS-Condition.md)
-  + [CountDownLatch深入理解](notes/se/JUC/util/CountDownLatch.md)
-  + [CyclicBarrier深入理解](notes/se/JUC/util/CyclicBarrier.md)
-  + [信号量Semaphore深入理解](notes/se/JUC/util/Semaphore.md)
-  + [Phaser深入理解](notes/se/JUC/util/Phaser.md)
-  + [Exchanger深入理解](notes/se/JUC/util/Exchanger.md)
+  + [Condition深入理解](notes/java/JUC/lock/AQS-Condition.md)
+  + [CountDownLatch深入理解](notes/java/JUC/util/CountDownLatch.md)
+  + [CyclicBarrier深入理解](notes/java/JUC/util/CyclicBarrier.md)
+  + [信号量Semaphore深入理解](notes/java/JUC/util/Semaphore.md)
+  + [Phaser深入理解](notes/java/JUC/util/Phaser.md)
+  + [Exchanger深入理解](notes/java/JUC/util/Exchanger.md)
 + 队列-Blocking
-  + [ArrayBlockingQueue深入理解](notes/se/JUC/Blocking/ArrayBlockingQueue深入理解.md)
-  + [PriorityBlockingQueue深入理解](notes/se/JUC/Blocking/PriorityBlockingQueue深入理解.md)
-  + [LinkedBlockingQueue深入理解](notes/se/JUC/Blocking/LinkedBlockingQueue深入理解.md)
-  + [LinkedBlockingDeque深入理解](notes/se/JUC/Blocking/LinkedBlockingDeque深入理解.md)
+  + [ArrayBlockingQueue深入理解](notes/java/JUC/Blocking/ArrayBlockingQueue深入理解.md)
+  + [PriorityBlockingQueue深入理解](notes/java/JUC/Blocking/PriorityBlockingQueue深入理解.md)
+  + [LinkedBlockingQueue深入理解](notes/java/JUC/Blocking/LinkedBlockingQueue深入理解.md)
+  + [LinkedBlockingDeque深入理解](notes/java/JUC/Blocking/LinkedBlockingDeque深入理解.md)
 + 同步容器
   + ConcurrentHashMap
   + ConcurrentSkipListMap
