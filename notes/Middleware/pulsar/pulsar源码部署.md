@@ -72,14 +72,37 @@ Program arguments:
 
 ## 集群模式启动
 
-
-
-
-
-#### 适用场景
-
-Pulsar事务 (txn) 使事件流应用程序能够在一个原子操作中消费、处理和生成消息
-
-+ 对多条消息的操作时，需要保证本次操作的原子性
-+ 在pulsar Function中
+```properties
+-Dlog4j.configurationFile=D:\workspace\pulsar\conf\log4j2.yaml
+-Djute.maxbuffer=10485760
+-Djava.net.preferIPv4Stack=true
+-Dpulsar.allocator.exit_on_oom=true
+-Dio.netty.recycler.maxCapacity.default=1000
+-Dio.netty.recycler.linkCapacity=1024
+-Xms2g
+-Xmx2g
+-XX:MaxDirectMemorySize=2g
+-XX:+UseG1GC
+-XX:MaxGCPauseMillis=10
+-XX:+ParallelRefProcEnabled
+-XX:+UnlockExperimentalVMOptions
+-XX:+AggressiveOpts
+-XX:+DoEscapeAnalysis
+-XX:ParallelGCThreads=2
+-XX:ConcGCThreads=2
+-XX:G1NewSizePercent=50
+-XX:+DisableExplicitGC
+-XX:-ResizePLAB
+-Dpulsar.log.appender=RoutingAppender
+-Dpulsar.log.dir=D:/pulsar-dev/logs
+-Dpulsar.log.level=info
+-Dpulsar.routing.appender.default=Console
+-Dpulsar.functions.process.container.log.dir=D:/pulsar-dev/logs
+-Dpulsar.functions.java.instance.jar=D:/workspace/pulsar/pulsar-functions/runtime-all/target/java-instance.jar
+-Dpulsar.functions.python.instance.file=D:/workspace/pulsar/pulsar-functions/instance/target/python-instance/python_instance_main.py
+-Dpulsar.functions.extra.dependencies.dir=D:/workspace/pulsar/instances/deps
+-Dpulsar.functions.instance.classpath=D:/workspace/pulsar/pulsar-broker/target/pulsar-broker.jar
+-javaagent:D:/repo/caches/modules-2/files-2.1/org.aspectj/aspectjweaver/1.8.2/4963c0bef4748d5ad039cc26c1ac32a082eb755e/aspectjweaver-1.8.2.jar
+-Dpulsar.log.file=pulsar-standalone.log
+```
 
