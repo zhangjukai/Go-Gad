@@ -527,6 +527,14 @@ Linux系统体系结构：
 值、变量等，以备内核态切换回用户态。这种切换就带来了大量的系统资源消耗，这就是在
 synchronized未优化之前，效率低的原因。  
 
+## synchronized锁重入
+
+synchronized是可重入锁，重入次数必须要记录下来，因为解锁时需要解锁相应的次数
+
+偏向锁/轻量级锁(自旋锁)重入次数是记录在线程栈中的，每重入一次LR+1
+
+重量级锁是记录在ObjectMonitor对象中_recursions字段上的
+
 ## synchronized优化-锁升级
 
 在分析完synchronized原理过后，我们知道synchronized是一个重量级锁。JVM自JDK1.6开始借助Java的对象头（切确的说是java对象头中的Mark Word），对synchronized同步锁做了充分的优化，实现了锁升级功能(**无锁->偏向锁->轻量级锁->重量级锁**),使其性能在大多数情况下，与Lock锁不相上下 。
@@ -693,6 +701,8 @@ public class BiasedLockTest {
 
 ### 重量级锁
 
+
+
 对于Synchronized而言，重量级锁就是持有monitor对象，前面已经详细介绍过了，下面就通过一个示例对照一下重量级锁的MarkWord。
 
 将前面使用过的示例调整为：
@@ -754,3 +764,16 @@ synchronized底层是通过monitor来实现的，对应着jvm（Hotspot）源码
 2. .class文件（字节码层面）：monitorenter、monitorexit
 3. 执行过程中：锁升级
 4. 底层汇编指令：lock cmpxchg
+
+**轻量级锁什么时候升级到重量级锁：**
+
+竞争加剧，有线程超过10次自旋（-XX:preBlockSpin可以配置）,或者自旋线程数超过CPU核数的一半，1.6之后加入自适应自旋Adapative Self Spinning，就由JVM自己控制
+
+**为什么有轻量级锁还需要重量级锁：**
+
+轻量级锁是通过自旋来实现的，自旋会消耗CPU资源，如果锁的时间长，或者自旋的线程多，CPU会被大量消耗，重量级锁有等待队列(waitSet)，所有拿不到锁的线程都会进入等待队列，不需要消耗CPU资源
+
+**偏向锁是否一定比自旋锁效率高：**
+
+不一定，在明确知道会有多个线程竞争的情况下，偏向锁肯定会涉及到锁撤销，这时候直接使用自旋锁，jvm启动过程会有很多线程竞争，所以默认情况下不打开，启动有延迟(4s)
+

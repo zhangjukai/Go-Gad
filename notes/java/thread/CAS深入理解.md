@@ -71,4 +71,4 @@ inline jint Atomic::cmpxchg (jint exchange_value, volatile jint* dest, jint     
 
 ### 总结
 
-汇编中有CAS对应的指令`cmpcchgl`，但是如果在多CPU系统上，该指令并不能保证原子性（在比较过后可能被其他线程改变成其他的值），具体的实现是在`cmpcchgl`指令前加Lock指令，通过锁定北桥信号来保证其原子性。
+汇编中有CAS对应的指令`cmpcchgl`，但是如果在多CPU系统上，该指令并不能保证原子性（在比较过后可能被其他线程改变成其他的值），具体的实现是在`cmpcchgl`指令前加Lock指令，通过锁定北桥信号来保证其原子性（不采用锁总线的方式）。
