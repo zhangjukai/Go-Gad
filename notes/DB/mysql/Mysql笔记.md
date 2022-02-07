@@ -639,3 +639,8 @@ show status like 'Handler_read%';
 + 在早期mysql中，分区表达式必须是整数或者是返回整数的表达式，在mysql5.5中，某些场景可以直接使用列来进行分区
 + 如果分区字段中有主键或者唯一索引的列，那么所有主键列和唯一索引列都必须包含进来
 + 分区表无法使用外键约束
+
+## mysql初始化时区
+
+下载sql脚本，在mysql库中执行，https://dev.mysql.com/downloads/timezones.html
+
