@@ -54,7 +54,7 @@ grep -R "3e15c18e21b34a849e2e7182facd159e" ./
 
 cat  catalina.out | grep 【MQ-HTTP-API】消息处理超时 | tail -n 10
 
-
+grep -iR 9100 ./
 
 
 
