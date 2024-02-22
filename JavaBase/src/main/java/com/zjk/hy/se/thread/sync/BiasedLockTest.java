@@ -10,10 +10,10 @@ public class BiasedLockTest {
                 System.out.println(ClassLayout.parseInstance(obj).toPrintable());
             }
         }).start();
-        new Thread(() -> {
+        /*new Thread(() -> {
             synchronized (obj) {
                 System.out.println(ClassLayout.parseInstance(obj).toPrintable());
             }
-        }).start();
+        }).start();*/
     }
 }
